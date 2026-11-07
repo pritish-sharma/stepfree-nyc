@@ -1,0 +1,8 @@
+# Analysis pipeline (Python >= 3.10). The web app itself needs no install.
+pandas>=2.2
+numpy>=1.26
+scipy>=1.11        # scipy.optimize.milp (HiGHS) for the exact optimality check
+scikit-learn>=1.3  # BallTree radius queries for 311 / crash context
+matplotlib>=3.8    # README figures
+# Optional: re-execute the notebook
+# jupyter nbconvert ipykernel nbformat

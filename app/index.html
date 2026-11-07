@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StepFree NYC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<style>
+/* Layout: planner workbench — controls rail | station map | ranked capital list; evidence and method as sibling tabs. */
+:root {
+  --bg: #eef0ec; --surface: #ffffff; --surface-2: #f6f7f4; --ink: #121512; --ink-2: #4f564f; --ink-3: #7c837b;
+  --line: #dcdfd8; --line-2: #c9cdc5; --focus: #2a78d6;
+  --stepfree: #2a78d6; --partial: #1baf7a; --none: #b3b7af; --pick: #eb6834; --pick-ink: #b8461a;
+  --badge-bg: #121512; --badge-ink: #ffffff; --chip: #e7eae3; --good: #1c7c4a;
+  --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111311; --surface: #191c19; --surface-2: #1f231f; --ink: #eef0ec; --ink-2: #b9bfb7; --ink-3: #8a9189;
+  --line: #2c312c; --line-2: #3a403a; --focus: #5598e7;
+  --stepfree: #3987e5; --partial: #199e70; --none: #5a5f58; --pick: #f07a45; --pick-ink: #f39466;
+  --badge-bg: #eef0ec; --badge-ink: #111311; --chip: #262a26; --good: #4fbf83; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111311; --surface: #191c19; --surface-2: #1f231f; --ink: #eef0ec; --ink-2: #b9bfb7; --ink-3: #8a9189;
+  --line: #2c312c; --line-2: #3a403a; --focus: #5598e7;
+  --stepfree: #3987e5; --partial: #199e70; --none: #5a5f58; --pick: #f07a45; --pick-ink: #f39466;
+  --badge-bg: #eef0ec; --badge-ink: #111311; --chip: #262a26; --good: #4fbf83; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--font-body); -webkit-font-smoothing: antialiased; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* header */
+header { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 1000; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 1001; background: var(--surface); }
+.hbar { display: flex; align-items: center; gap: 24px; padding-block: 10px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand h1 { font: 800 22px/1 var(--font-display); font-stretch: 80%; letter-spacing: -.01em; margin: 0; }
+.brand h1 span { color: var(--stepfree); }
+.brand p { margin: 0; color: var(--ink-2); font-size: 13px; }
+nav.tabs { display: flex; gap: 2px; margin-left: auto; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+nav.tabs button { border: 0; background: transparent; padding: 6px 14px; border-radius: 5px; cursor: pointer; color: var(--ink-2); font-weight: 500; }
+nav.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.window { font: 500 11px/1 var(--font-mono); color: var(--ink-3); letter-spacing: .04em; text-transform: uppercase; }
+
+/* planner grid */
+.planner { display: grid; grid-template-columns: 272px minmax(0, 1fr) 400px; gap: 12px; padding-block: 12px; height: calc(100vh - 58px); min-height: 640px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; }
+.rail { padding: 16px; overflow: auto; display: flex; flex-direction: column; gap: 18px; }
+.rail h2, .listhead h2, .card h2 { font: 700 13px/1.2 var(--font-display); letter-spacing: .06em; text-transform: uppercase; margin: 0; color: var(--ink-2); }
+.ctl { display: flex; flex-direction: column; gap: 6px; }
+.ctl label, .ctl .lbl { font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: baseline; }
+.ctl .hint { color: var(--ink-3); font-size: 12px; line-height: 1.35; }
+.ctl output { font: 500 15px var(--font-mono); color: var(--ink); }
+input[type=range] { width: 100%; accent-color: var(--stepfree); }
+select { width: 100%; padding: 7px 8px; border: 1px solid var(--line-2); border-radius: 5px; background: var(--surface); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line-2); border-radius: 5px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 7px 6px; cursor: pointer; font-size: 12.5px; color: var(--ink-2); }
+.seg button + button { border-left: 1px solid var(--line-2); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.toggle { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.toggle input { margin-top: 3px; accent-color: var(--stepfree); width: 16px; height: 16px; flex: none; }
+.toggle b { font-weight: 600; font-size: 13px; display: block; }
+.toggle span { color: var(--ink-3); font-size: 12px; }
+.btn { border: 1px solid var(--line-2); background: var(--surface); padding: 7px 12px; border-radius: 5px; cursor: pointer; font-weight: 500; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--chip); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12px; }
+.chip button { border: 0; background: transparent; cursor: pointer; color: var(--ink-3); padding: 0 4px; }
+
+/* centre */
+.centre { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpi { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.kpi .k { font-size: 12px; color: var(--ink-2); font-weight: 500; }
+.kpi .v { font: 700 26px/1.05 var(--font-display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
+.kpi .v small { font: 500 13px var(--font-mono); color: var(--ink-3); margin-left: 4px; }
+.kpi .s { font-size: 12px; color: var(--ink-3); }
+.kpi .s b { color: var(--good); font-weight: 600; }
+.mapwrap { position: relative; flex: 1; min-height: 320px; overflow: hidden; }
+#map { position: absolute; inset: 0; background: var(--surface-2); border-radius: var(--r); }
+.leaflet-container { background: var(--surface-2); font-family: var(--font-body); }
+.legend { position: absolute; left: 12px; bottom: 12px; z-index: 500; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; display: grid; gap: 4px; font-size: 12px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.legend i.ring { background: transparent; border: 2.5px solid var(--pick); width: 12px; height: 12px; }
+.mapnote { position: absolute; right: 12px; top: 12px; z-index: 500; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 12px; color: var(--ink-2); max-width: 260px; }
+.leaflet-tooltip { background: var(--surface); color: var(--ink); border: 1px solid var(--line-2); box-shadow: 0 2px 8px rgba(0,0,0,.12); font: 12px/1.35 var(--font-body); }
+.leaflet-tooltip-top:before { border-top-color: var(--line-2); }
+.rank-label { font: 700 11px/1 var(--font-mono); color: var(--pick-ink); text-shadow: 0 0 3px var(--surface), 0 0 3px var(--surface); white-space: nowrap; }
+.leaflet-control-zoom a { background: var(--surface) !important; color: var(--ink) !important; border-color: var(--line) !important; }
+
+/* right list */
+.side { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.listhead { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.listhead p { margin: 0; font-size: 12px; color: var(--ink-3); }
+.list { overflow: auto; flex: 1; }
+.row { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); cursor: pointer; align-items: start; }
+.row:hover, .row.sel { background: var(--surface-2); }
+.row .rk { font: 700 15px/1.2 var(--font-mono); color: var(--pick-ink); }
+.row .nm { font-weight: 600; line-height: 1.25; }
+.row .meta { color: var(--ink-3); font-size: 12px; margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.row .gain { text-align: right; }
+.row .gain b { font: 600 14px var(--font-mono); display: block; }
+.row .gain span { font-size: 11px; color: var(--ink-3); }
+.bar { height: 3px; background: var(--line); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--stepfree); border-radius: 2px; }
+.routes { display: inline-flex; gap: 2px; flex-wrap: wrap; }
+.rt { display: inline-grid; place-items: center; min-width: 17px; height: 17px; border-radius: 50%; font: 700 10px/1 var(--font-body); background: var(--badge-bg); color: var(--badge-ink); padding: 0 3px; }
+.rt.off { background: transparent; color: var(--ink-2); box-shadow: inset 0 0 0 1.5px var(--line-2); }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--chip); }
+.pill i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.conf { font: 500 11px var(--font-mono); color: var(--ink-3); }
+
+/* detail */
+.detail { padding: 16px; overflow: auto; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+.detail h3 { font: 700 20px/1.15 var(--font-display); font-stretch: 85%; margin: 0; text-wrap: balance; }
+.back { border: 0; background: transparent; color: var(--ink-2); cursor: pointer; padding: 0; font-size: 13px; align-self: flex-start; }
+.dl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.dl div { display: flex; flex-direction: column; gap: 2px; }
+.dl dt { font-size: 11.5px; color: var(--ink-3); }
+.dl dd { margin: 0; font: 500 15px var(--font-mono); }
+.sub { font: 700 12px/1.2 var(--font-display); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 6px; }
+.mini { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.mini td { padding: 5px 0; border-bottom: 1px solid var(--line); }
+.mini td:last-child { text-align: right; font-family: var(--font-mono); white-space: nowrap; }
+.caveat { font-size: 12px; color: var(--ink-3); line-height: 1.4; margin: 6px 0 0; }
+
+/* evidence + method */
+.page { padding-block: 16px 40px; display: grid; gap: 16px; max-width: 1280px; margin: 0 auto; }
+.lede { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
+.lede .panel { padding: 20px 22px; }
+.lede h2 { font: 800 30px/1.08 var(--font-display); font-stretch: 82%; margin: 0 0 10px; text-wrap: balance; letter-spacing: -.01em; }
+.lede p { margin: 0 0 8px; color: var(--ink-2); max-width: 66ch; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.card { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card .q { font: 700 17px/1.25 var(--font-display); font-stretch: 90%; margin: 0; text-wrap: balance; }
+.card p { margin: 0; color: var(--ink-2); font-size: 13.5px; max-width: 70ch; }
+.chart { width: 100%; height: 300px; }
+.tbl { overflow-x: auto; }
+table.data { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.data th { text-align: left; font-weight: 600; color: var(--ink-2); font-size: 12px; border-bottom: 1px solid var(--line-2); padding: 6px 8px; }
+table.data td { border-bottom: 1px solid var(--line); padding: 6px 8px; }
+table.data td.n, table.data th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.bignum { display: flex; gap: 22px; flex-wrap: wrap; }
+.bignum div b { display: block; font: 800 34px/1 var(--font-display); font-stretch: 82%; }
+.bignum div span { font-size: 12px; color: var(--ink-3); }
+.method { max-width: 860px; margin: 0 auto; padding-block: 20px 60px; }
+.method h2 { font: 800 26px/1.1 var(--font-display); font-stretch: 85%; margin: 28px 0 8px; }
+.method h3 { font: 700 16px/1.2 var(--font-display); margin: 20px 0 6px; }
+.method p, .method li { color: var(--ink-2); max-width: 70ch; }
+.method code, .formula { font-family: var(--font-mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+.formula { display: block; padding: 12px 14px; white-space: pre-wrap; color: var(--ink); overflow-x: auto; }
+
+@media (max-width: 1180px) {
+  .planner { grid-template-columns: 250px minmax(0, 1fr); height: auto; }
+  .side { grid-column: 1 / -1; max-height: 640px; }
+  .centre { min-height: 640px; }
+}
+@media (max-width: 760px) {
+  .planner { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lede, .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .centre { min-height: 0; } .mapwrap { min-height: 420px; flex: none; height: 420px; }
+  nav.tabs { margin-left: 0; }
+  .mapnote { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<header>
+  <div class="wrap hbar">
+    <div class="brand"><h1>Step<span>Free</span> NYC</h1><p>Subway elevator investment planner</p></div>
+    <span class="window">MTA · NYC 311 · NYPD · NOAA — Aug 1 – Sep 30, 2025</span>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="planner" id="tab-planner">Planner</button>
+      <button role="tab" aria-selected="false" data-tab="evidence" id="tab-evidence">Evidence</button>
+      <button role="tab" aria-selected="false" data-tab="method" id="tab-method">Method &amp; limits</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section id="view-planner" class="wrap">
+  <div class="planner">
+    <aside class="panel rail" aria-label="Scenario controls">
+      <h2>Scenario</h2>
+      <div class="ctl">
+        <label for="k">Stations to upgrade <output id="kOut" class="num">20</output></label>
+        <input id="k" type="range" min="1" max="50" value="20">
+        <span class="hint">Capital budget, expressed as number of complexes made step-free.</span>
+      </div>
+      <div class="ctl">
+        <span class="lbl">Planning goal</span>
+        <div class="seg" role="group" aria-label="Planning goal">
+          <button id="obj-gap" aria-pressed="true">Shrink detours</button>
+          <button id="obj-cov" aria-pressed="false">Cover riders</button>
+        </div>
+        <span class="hint" id="objHint">Minimise ridership-weighted distance to the nearest step-free station on the same route.</span>
+        <div id="tWrap" hidden>
+          <select id="t" aria-label="Coverage distance">
+            <option value="0.5">within 0.5 km</option><option value="0.8" selected>within 0.8 km</option><option value="1.0">within 1.0 km</option>
+          </select>
+        </div>
+      </div>
+      <div class="ctl">
+        <label for="floor">Borough guarantee</label>
+        <select id="floor">
+          <option value="0">None (pure efficiency)</option><option value="1">At least 1 per borough</option>
+          <option value="2">At least 2 per borough</option><option value="3">At least 3 per borough</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label for="weight">Demand basis</label>
+        <select id="weight">
+          <option value="w_weekday">Weekday entries, Aug–Sep</option>
+          <option value="w_weekday_dry">Dry weekdays only</option>
+          <option value="w_weekend">Weekend entries</option>
+          <option value="w_weekday_aug">August weekdays</option>
+          <option value="w_weekday_sep">September weekdays</option>
+        </select>
+      </div>
+      <label class="toggle"><input type="checkbox" id="same" checked><div><b>Alternative must share a route</b><span>A step-free station only counts if it serves a route the rider needs.</span></div></label>
+      <label class="toggle"><input type="checkbox" id="lenient" checked><div><b>One-direction access counts</b><span>Treat platforms marked step-free in one direction (ADA = 2) as accessible.</span></div></label>
+      <div class="ctl" id="exclWrap" hidden>
+        <span class="lbl">Excluded from plan</span>
+        <div class="chips" id="excl"></div>
+      </div>
+      <button class="btn" id="reset">Reset to defaults</button>
+    </aside>
+
+    <div class="centre">
+      <div class="kpis">
+        <div class="panel kpi"><span class="k">Access Gap Index</span><span class="v num" id="kpiGap">–</span><span class="s" id="kpiGapS"></span></div>
+        <div class="panel kpi"><span class="k">Extra gap closed vs. busiest-first</span><span class="v num" id="kpiBase">–</span><span class="s" id="kpiBaseS"></span></div>
+        <div class="panel kpi"><span class="k">Avg. detour, affected riders</span><span class="v num" id="kpiKm">–</span><span class="s" id="kpiKmS"></span></div>
+        <div class="panel kpi"><span class="k">Step-free option ≤ 0.8 km</span><span class="v num" id="kpiCov">–</span><span class="s" id="kpiCovS"></span></div>
+      </div>
+      <div class="panel mapwrap">
+        <div id="map" role="img" aria-label="Map of subway station complexes coloured by step-free status"></div>
+        <div class="legend">
+          <span><i style="background:var(--stepfree)"></i>Step-free</span>
+          <span><i style="background:var(--partial)"></i>Partly step-free</span>
+          <span><i style="background:var(--none)"></i>No step-free access</span>
+          <span><i class="ring"></i>Recommended upgrade</span>
+        </div>
+        <div class="mapnote" id="mapnote">Dot size = weekday entries. Click a station for detail; lines show which stations an upgrade helps.</div>
+      </div>
+    </div>
+
+    <aside class="panel side" aria-label="Recommended sequence">
+      <div id="listView" style="display:flex;flex-direction:column;min-height:0;flex:1">
+        <div class="listhead"><h2>Recommended sequence</h2><p id="listSub"></p></div>
+        <div class="list" id="list"></div>
+      </div>
+      <div id="detailView" class="detail" hidden></div>
+    </aside>
+  </div>
+</section>
+
+<section id="view-evidence" class="wrap" hidden>
+  <div class="page" id="evidence"></div>
+</section>
+
+<section id="view-method" class="wrap" hidden>
+  <article class="method" id="method"></article>
+</section>
+</main>
+
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/plotly.min.js"></script>
+<script src="data.js"></script>
+<script src="model.js"></script>
+<script>
+(function () {
+"use strict";
+const DATA = window.STEPFREE, M = window.StepFreeModel, MET = DATA.metrics;
+const ST = DATA.stations, N = ST.length, DIST = M.buildDist(ST);
+const GROUPS = ST.map(s => s.borough);
+const DEFAULTS = { K: 20, mode: "gap", T: 0.8, floor: 0, weight: "w_weekday", sameRoute: true, lenient: true };
+const S = Object.assign({}, DEFAULTS, { exclude: new Set(), selected: null });
+let P = null, PLAN = [], BUSIEST = [], cache = {};
+
+const $ = id => document.getElementById(id);
+const fmt = (x, d = 0) => x.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
+const pct = (x, d = 1) => (100 * x).toFixed(d) + "%";
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const STATUS = { full: ["Step-free", "--stepfree"], partial: ["Partly step-free", "--partial"], none: ["No step-free access", "--none"] };
+const isDefault = () => S.K >= 1 && S.mode === "gap" && S.floor === 0 && S.weight === "w_weekday" && S.sameRoute && S.lenient && S.exclude.size === 0;
+const shortName = s => s.name.replace(/\s*\([^)]*\)\s*$/, "");
+
+function routeBadges(i) {
+  const acc = P ? P.A[i] : new Set(M.parse(ST[i].acc_routes));
+  return '<span class="routes">' + M.parse(ST[i].routes).map(r =>
+    `<span class="rt${acc.has(r) ? "" : " off"}" title="${r} ${acc.has(r) ? "step-free" : "not step-free"}">${r}</span>`).join("") + "</span>";
+}
+function pill(i) { const [t, c] = STATUS[ST[i].status]; return `<span class="pill"><i style="background:var(${c})"></i>${t}</span>`; }
+
+// ------------------------------------------------------------------ compute
+function compute() {
+  const key = [S.weight, S.sameRoute, S.lenient].join("|");
+  if (!cache[key]) cache[key] = M.buildProblem(ST, DIST, { weight: S.weight, sameRoute: S.sameRoute, strictPartial: !S.lenient, cap: 5 });
+  P = cache[key];
+  PLAN = M.greedy(P, S.K, { mode: S.mode, T: S.T, floor: S.floor, groups: GROUPS, exclude: S.exclude });
+  BUSIEST = P.cands.filter(c => !S.exclude.has(c)).sort((a, b) => ST[b][S.weight] - ST[a][S.weight]);
+}
+
+// ------------------------------------------------------------------ KPIs
+function renderKpis() {
+  const picks = PLAN.map(x => x.j);
+  const B0 = M.gapIndex(P, []), B1 = M.gapIndex(P, picks), Bb = M.gapIndex(P, BUSIEST.slice(0, S.K));
+  const uSum = P.u.reduce((a, b) => a + b, 0);
+  $("kpiGap").innerHTML = `−${pct(1 - B1 / B0)}`;
+  $("kpiGapS").textContent = `${fmt(B0 / 1000, 0)}k → ${fmt(B1 / 1000, 0)}k entry-km/day`;
+  const extra = (B0 - B1) / (B0 - Bb) - 1;
+  $("kpiBase").innerHTML = `${extra >= 0 ? "+" : ""}${pct(extra, 0)}`;
+  const curveB = M.curve(P, BUSIEST, 120);
+  const match = curveB.findIndex(v => v <= B1);
+  $("kpiBaseS").innerHTML = `Busiest-first closes ${pct(1 - Bb / B0)}` + (match > 0 ? ` and needs <b>${match}</b> upgrades to match` : " and cannot match within 120");
+  $("kpiKm").innerHTML = `${(B1 / uSum).toFixed(2)}<small>km</small>`;
+  $("kpiKmS").textContent = `from ${(B0 / uSum).toFixed(2)} km today`;
+  const T = S.mode === "coverage" ? S.T : 0.8;
+  document.querySelector("#kpiCov").previousElementSibling.textContent = `Step-free option ≤ ${T} km`;
+  const c0 = M.covered(P, [], T) / uSum, c1 = M.covered(P, picks, T) / uSum;
+  $("kpiCov").innerHTML = pct(c1, 0);
+  $("kpiCovS").innerHTML = `of affected riders, from ${pct(c0, 0)} (<b>+${fmt((c1 - c0) * uSum / 1000, 0)}k</b>/day)`;
+}
+
+// ------------------------------------------------------------------ map
+let map, layer, linkLayer, labelLayer, markers = [];
+function initMap() {
+  map = L.map("map", { zoomControl: true, attributionControl: false, preferCanvas: true, zoomSnap: 0.25, minZoom: 9.5, maxZoom: 15 });
+  map.fitBounds([[40.57, -74.04], [40.90, -73.75]]);
+  linkLayer = L.layerGroup().addTo(map); layer = L.layerGroup().addTo(map); labelLayer = L.layerGroup().addTo(map);
+  const wmax = Math.max(...ST.map(s => s.w_weekday));
+  ST.forEach((s, i) => {
+    const r = 2.5 + 11 * Math.sqrt(s.w_weekday / wmax);
+    const m = L.circleMarker([s.lat, s.lon], { radius: r, weight: 0, fillOpacity: 0.92 });
+    m.on("click", () => select(i));
+    m.bindTooltip("", { direction: "top", offset: [0, -r] });
+    m.on("tooltipopen", () => m.setTooltipContent(tipHtml(i)));
+    m.addTo(layer); markers.push(m);
+  });
+}
+function tipHtml(i) {
+  const s = ST[i], rk = PLAN.findIndex(x => x.j === i);
+  return `<b>${s.name}</b><br>${STATUS[s.status][0]} · ${fmt(s.w_weekday)} weekday entries` +
+    (P.u[i] > 0 ? `<br>Detour to same-route step-free: ${P.d0[i].toFixed(2)} km` : "") +
+    (rk >= 0 ? `<br><b style="color:var(--pick-ink)">Recommended upgrade #${rk + 1}</b>` : "");
+}
+function renderMap() {
+  const picks = new Map(PLAN.map((x, k) => [x.j, k]));
+  labelLayer.clearLayers();
+  markers.forEach((m, i) => {
+    const s = ST[i], col = css(STATUS[s.status][1]);
+    const isPick = picks.has(i), sel = S.selected === i;
+    m.setStyle({ fillColor: col, color: isPick ? css("--pick") : css("--ink"), weight: isPick ? 3 : (sel ? 2 : 0), opacity: 1,
+                 fillOpacity: S.exclude.has(i) ? 0.25 : 0.92 });
+    if (isPick) m.bringToFront();
+  });
+  PLAN.slice(0, 15).forEach((x, k) => {
+    const s = ST[x.j];
+    L.marker([s.lat, s.lon], { interactive: false, icon: L.divIcon({ className: "rank-label", html: String(k + 1), iconSize: [20, 12], iconAnchor: [-7, 14] }) }).addTo(labelLayer);
+  });
+  renderLinks();
+}
+function renderLinks() {
+  linkLayer.clearLayers();
+  if (S.selected == null) return;
+  const p = PLAN.find(x => x.j === S.selected);
+  if (!p) return;
+  const a = ST[p.j];
+  p.helped.filter(h => h.i !== p.j).forEach(h => {
+    const b = ST[h.i];
+    L.polyline([[a.lat, a.lon], [b.lat, b.lon]], { color: css("--pick"), weight: 1.5, opacity: 0.7, interactive: false }).addTo(linkLayer);
+  });
+}
+
+// ------------------------------------------------------------------ list + detail
+function renderList() {
+  const total = PLAN.reduce((a, x) => a + x.gapGain, 0) || 1, B0 = M.gapIndex(P, []);
+  const maxGain = Math.max(...PLAN.map(x => x.gapGain), 1);
+  $("listSub").textContent = `${PLAN.length} complexes · ${pct(total / B0)} of today's gap`;
+  const def = isDefault();
+  $("list").innerHTML = PLAN.map((x, k) => {
+    const s = ST[x.j], br = BUSIEST.indexOf(x.j) + 1;
+    const conf = def && k < 20 ? `<span class="conf" title="Share of 200 bootstrap re-samples of weekdays in which this station is in the top 20">picked in ${Math.round(100 * s.boot_top20_freq)}% of resamples</span>` : "";
+    return `<div class="row${S.selected === x.j ? " sel" : ""}" data-i="${x.j}" tabindex="0">
+      <span class="rk">${k + 1}</span>
+      <div><div class="nm">${shortName(s)}</div>
+        <div class="meta">${routeBadges(x.j)}<span>${s.borough}</span><span class="num">${fmt(s[S.weight])}/day</span></div>
+        <div class="meta"><span>gap ${P.d0[x.j].toFixed(2)} km</span><span>busiest-rank #${br}</span>${conf}</div>
+        <div class="bar"><i style="width:${(100 * x.gapGain / maxGain).toFixed(1)}%"></i></div></div>
+      <div class="gain"><b>${pct(x.gapGain / B0)}</b><span>of gap</span></div>
+    </div>`;
+  }).join("");
+  $("list").querySelectorAll(".row").forEach(el => {
+    el.addEventListener("click", () => select(+el.dataset.i));
+    el.addEventListener("keydown", e => { if (e.key === "Enter") select(+el.dataset.i); });
+  });
+}
+
+function percentileOf(col, v) { const arr = ST.map(s => s[col]); return arr.filter(x => x <= v).length / arr.length; }
+
+function renderDetail() {
+  const i = S.selected, s = ST[i], dv = $("detailView");
+  const rk = PLAN.findIndex(x => x.j === i), p = rk >= 0 ? PLAN[rk] : null, B0 = M.gapIndex(P, []);
+  const alt = P.alt0[i];
+  const altTxt = P.u[i] === 0 ? "Already step-free on all routes" :
+    (alt >= 0 ? `${shortName(ST[alt])} · ${P.d0[i].toFixed(2)} km` : `None within ${P.opt.cap} km (capped)`);
+  const unmetShare = P.R[i].size ? P.U[i].size / P.R[i].size : 0;
+  const helped = p ? p.helped.slice().sort((a, b) => P.u[b.i] * (b.before - b.after) - P.u[a.i] * (a.before - a.after)).slice(0, 8) : [];
+  const ctx = [["Sidewalk defects", "c311_sidewalk"], ["Broken curbs", "c311_curb"], ["Defective pedestrian ramps", "c311_ramp"], ["Street-light outages", "c311_street_light"]];
+  const isCand = P.cands.includes(i);
+  dv.innerHTML = `
+    <button class="back" id="back">← Back to sequence</button>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <h3>${s.name}</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${pill(i)}<span style="color:var(--ink-3);font-size:12px">${s.borough} · ${s.structure}</span></div>
+      <div>${routeBadges(i)} <span style="color:var(--ink-3);font-size:12px;margin-left:4px">filled = step-free route</span></div>
+      ${s.ada_notes ? `<div class="caveat">MTA note: ${s.ada_notes}</div>` : ""}
+    </div>
+    ${p ? `<div class="panel" style="padding:12px 14px;border-color:var(--pick)"><b style="color:var(--pick-ink)">Recommended upgrade #${rk + 1}</b>
+      <div style="font-size:13px;color:var(--ink-2);margin-top:4px">Closes ${pct(p.gapGain / B0)} of today's citywide gap and shortens the detour for ${p.helped.length} complex${p.helped.length === 1 ? "" : "es"}.</div></div>` : ""}
+    <dl class="dl">
+      <div><dt>Weekday entries</dt><dd>${fmt(s.w_weekday)}</dd></div>
+      <div><dt>Weekend entries</dt><dd>${fmt(s.w_weekend)}</dd></div>
+      <div><dt>Entries on routes without step-free</dt><dd>${fmt(P.u[i])} <span style="color:var(--ink-3);font-size:12px">(${pct(unmetShare, 0)} of routes)</span></dd></div>
+      <div><dt>Gap today</dt><dd>${P.u[i] > 0 ? P.d0[i].toFixed(2) + " km" : "0 km"}</dd></div>
+    </dl>
+    <div><p class="sub">Nearest step-free alternative today</p><div style="font-size:13.5px">${altTxt}</div></div>
+    ${helped.length ? `<div><p class="sub">Who this upgrade helps</p><table class="mini">${helped.map(h =>
+      `<tr><td>${shortName(ST[h.i])}</td><td>${h.before.toFixed(2)} → ${h.after.toFixed(2)} km</td></tr>`).join("")}</table></div>` : ""}
+    <div><p class="sub">Street approach · DOT 311 requests within 400 m</p>
+      <table class="mini">${ctx.map(([lab, c]) => `<tr><td>${lab}</td><td>${s[c]} <span style="color:var(--ink-3)">· ${Math.round(100 * percentileOf(c, s[c]))}th pct</span></td></tr>`).join("")}
+      <tr><td>Police-reported crashes / persons injured</td><td>${s.crashes} / ${s.crash_injured}</td></tr></table>
+      <p class="caveat">311 requests are complaints, not verified defects, and track how many people pass by. Use them to flag where an elevator project should be paired with a DOT curb-ramp and sidewalk check; they are not part of the ranking.</p></div>
+    ${isCand ? `<button class="btn" id="exBtn">${S.exclude.has(i) ? "Return to candidate pool" : "Exclude from plan (e.g. engineering constraint)"}</button>` : ""}`;
+  $("back").onclick = () => select(null);
+  if (isCand) $("exBtn").onclick = () => { S.exclude.has(i) ? S.exclude.delete(i) : S.exclude.add(i); update(); };
+}
+
+function select(i) {
+  S.selected = i;
+  $("listView").hidden = i != null; $("listView").style.display = i != null ? "none" : "flex";
+  $("detailView").hidden = i == null;
+  if (i != null) renderDetail(); else renderList();
+  renderMap();
+  if (i != null) map.panTo([ST[i].lat, ST[i].lon], { animate: true });
+}
+
+function renderExcl() {
+  $("exclWrap").hidden = S.exclude.size === 0;
+  $("excl").innerHTML = [...S.exclude].map(i => `<span class="chip">${shortName(ST[i])}<button data-i="${i}" aria-label="Return ${shortName(ST[i])} to pool">×</button></span>`).join("");
+  $("excl").querySelectorAll("button").forEach(b => b.onclick = () => { S.exclude.delete(+b.dataset.i); update(); });
+}
+
+function update() {
+  compute(); renderKpis(); renderExcl();
+  if (S.selected != null) renderDetail(); else renderList();
+  renderMap();
+  if (!$("view-evidence").hidden) renderEvidenceLive();
+}
+
+// ------------------------------------------------------------------ controls
+function bind() {
+  $("k").oninput = e => { S.K = +e.target.value; $("kOut").textContent = S.K; update(); };
+  const setMode = m => {
+    S.mode = m; $("obj-gap").setAttribute("aria-pressed", m === "gap"); $("obj-cov").setAttribute("aria-pressed", m === "coverage");
+    $("tWrap").hidden = m !== "coverage";
+    $("objHint").textContent = m === "gap" ? "Minimise ridership-weighted distance to the nearest step-free station on the same route."
+      : "Maximise entries whose nearest same-route step-free station is within the chosen distance.";
+    update();
+  };
+  $("obj-gap").onclick = () => setMode("gap"); $("obj-cov").onclick = () => setMode("coverage");
+  $("t").onchange = e => { S.T = +e.target.value; update(); };
+  $("floor").onchange = e => { S.floor = +e.target.value; update(); };
+  $("weight").onchange = e => { S.weight = e.target.value; update(); };
+  $("same").onchange = e => { S.sameRoute = e.target.checked; update(); };
+  $("lenient").onchange = e => { S.lenient = e.target.checked; update(); };
+  $("reset").onclick = () => {
+    Object.assign(S, DEFAULTS); S.exclude.clear();
+    $("k").value = 20; $("kOut").textContent = 20; $("t").value = "0.8"; $("floor").value = "0"; $("weight").value = "w_weekday";
+    $("same").checked = true; $("lenient").checked = true; setMode("gap");
+  };
+  document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+  window.addEventListener("hashchange", () => showTab((location.hash || "#planner").slice(1), true));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { renderMap(); if (!$("view-evidence").hidden) renderEvidenceLive(); });
+}
+function showTab(t, fromHash) {
+  if (!["planner", "evidence", "method"].includes(t)) t = "planner";
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+  ["planner", "evidence", "method"].forEach(v => $("view-" + v).hidden = v !== t);
+  if (!fromHash && location.hash !== "#" + t) history.replaceState(null, "", "#" + t);
+  if (t === "planner") setTimeout(() => map.invalidateSize(), 0);
+  if (t === "evidence") renderEvidenceLive();
+}
+
+// ------------------------------------------------------------------ evidence
+function plotLayout(extra) {
+  return Object.assign({
+    margin: { l: 52, r: 16, t: 8, b: 44 }, paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+    font: { family: css("--font-body"), size: 12, color: css("--ink-2") },
+    xaxis: { gridcolor: css("--line"), zeroline: false, linecolor: css("--line-2") },
+    yaxis: { gridcolor: css("--line"), zeroline: false, linecolor: css("--line-2") },
+    legend: { orientation: "h", y: 1.12, x: 0, font: { size: 11.5 } }, hoverlabel: { bgcolor: css("--surface"), bordercolor: css("--line-2"), font: { color: css("--ink") } },
+  }, extra || {});
+}
+const PCFG = { displayModeBar: false, responsive: true };
+
+function renderEvidenceStatic() {
+  const b = MET.baselines.K20, o = MET.out_of_sample, bs = MET.bootstrap, prof = DATA.profile;
+  const milpRows = Object.entries(MET.milp).map(([k, v]) => `<tr><td>${k.slice(1)}</td><td class="n">${pct(v.greedy_reduction)}</td><td class="n">${pct(v.optimal_reduction)}</td><td class="n">${v.overlap}/${k.slice(1)}</td></tr>`).join("");
+  const sensRows = Object.entries(MET.sensitivity_top20_overlap).map(([k, v]) => `<tr><td>${k.replace(/_/g, " ")}</td><td class="n">${v.overlap_of_20}/20</td></tr>`).join("");
+  const eqRows = Object.entries(MET.equity_floor).map(([k, v]) => `<tr><td>${k.replace(/_/g, " ").replace("min", "At least")}</td><td class="n">${pct(v.reduction)}</td><td class="n">−${(100 * v.cost_vs_unconstrained_pct_points).toFixed(2)} pts</td></tr>`).join("");
+  const cg = MET.current_gap, setup = MET.setup;
+  $("evidence").innerHTML = `
+  <div class="lede">
+    <div class="panel"><h2>Upgrading the busiest inaccessible stations first delivers just over half the access benefit of an optimised plan.</h2>
+      <p>${setup.n_candidates} of ${setup.n_complexes} subway complexes lack step-free access on at least one route. Riders entering on those routes average a <b>${cg.entry_weighted_mean_gap_km.toFixed(2)} km</b> straight-line trip to the nearest step-free station on the same route; ${pct(cg.share_unmet_demand_gap_over_1km, 0)} of them face more than 1 km.</p>
+      <p>Ranking candidates by ridership ignores whether a step-free station already sits nearby on the same line. Treating the choice as a facility-location problem closes <b>${pct(b.greedy)}</b> of the gap with 20 upgrades, against <b>${pct(b.busiest_first)}</b> for busiest-first. Busiest-first needs <b>${b.busiest_first_upgrades_to_match}</b> upgrades to match.</p></div>
+    <div class="panel"><div class="bignum">
+      <div><b>${pct(b.greedy)}</b><span>gap closed, 20 upgrades</span></div>
+      <div><b>${b.busiest_first_upgrades_to_match - 20}</b><span>upgrades saved vs. busiest-first</span></div>
+      <div><b>${pct(o.reduction_greedy_trained_on_aug)}</b><span>out-of-sample (Aug plan, Sep data)</span></div>
+      <div><b>${bs.greedy_top20_selected_in_ge_90pct}/20</b><span>picks stable in ≥90% of bootstraps</span></div></div>
+      <p style="margin-top:14px;font-size:12.5px;color:var(--ink-3)">Access Gap Index = Σ (weekday entries on routes without step-free access) × (km to nearest same-route step-free station). An exposure proxy, not a count of disabled riders.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="panel card"><p class="q">Does optimised sequencing beat simple rules? <span style="color:var(--ink-3);font-weight:500">(live, current scenario)</span></p>
+      <div id="chCurve" class="chart"></div>
+      <p>Each line adds one upgrade at a time. The grey band is 200 random orders. The stand-alone score ranks stations by their own benefit and ignores overlap between nearby upgrades.</p></div>
+    <div class="panel card"><p class="q">Who gets the upgrades? <span style="color:var(--ink-3);font-weight:500">(live, current scenario)</span></p>
+      <div id="chBorough" class="chart"></div>
+      <p>The unconstrained plan gives the Bronx no upgrades in the top 20. A borough guarantee fixes that at small cost:</p>
+      <div class="tbl"><table class="data"><tr><th>Constraint (K = 20)</th><th class="n">Gap closed</th><th class="n">Cost</th></tr>
+      <tr><td>None</td><td class="n">${pct(b.greedy)}</td><td class="n">–</td></tr>${eqRows}</table></div></div>
+    <div class="panel card"><p class="q">Is the greedy answer actually optimal?</p>
+      <p>The objective is monotone submodular, so greedy is guaranteed at least 63% of optimal. We also solved the exact mixed-integer program (SciPy / HiGHS) for each budget.</p>
+      <div class="tbl"><table class="data"><tr><th>K</th><th class="n">Greedy</th><th class="n">Exact optimum</th><th class="n">Same stations</th></tr>${milpRows}</table></div>
+      <p>On this network greedy reached the proven optimum at every budget tested.</p></div>
+    <div class="panel card"><p class="q">Would a plan made earlier still hold?</p>
+      <div id="chOos" class="chart" style="height:240px"></div>
+      <p>Plan on August weekdays only, then score on September (Labor Day excluded). The August plan gets ${pct(o.reduction_greedy_trained_on_aug)} vs. ${pct(o.reduction_oracle_trained_on_sep)} for a plan that saw September. Station ridership ranks correlate at Spearman ρ = ${o.spearman_station_weights_aug_vs_sep.toFixed(3)} across months.</p></div>
+    <div class="panel card"><p class="q">How sensitive is the top 20 to our assumptions?</p>
+      <div class="tbl"><table class="data"><tr><th>Change from default</th><th class="n">Top-20 overlap</th></tr>${sensRows}
+      <tr><td>bootstrap, 200 weekday resamples (mean selection freq.)</td><td class="n">${pct(bs.greedy_top20_mean_selection_freq, 0)}</td></tr></table></div>
+      <p>The answer is stable to demand noise, weather, and distance caps. It changes with the route rule, which is a policy choice we expose as a control: requiring a same-route alternative is the realistic standard for a rider who needs to reach the same destinations.</p></div>
+    <div class="panel card"><p class="q">What data went in, and what did we check?</p>
+      <div class="tbl"><table class="data">
+      <tr><td>MTA ridership</td><td class="n">${fmt(prof.ridership.rows)} rows · ${prof.ridership.complexes} complexes · ${prof.ridership.days} days · ${prof.ridership.duplicate_complex_days} duplicates · ${prof.ridership.complex_days_missing} missing complex-days</td></tr>
+      <tr><td>Accessibility join</td><td class="n">${prof.join.matched_to_accessibility}/${prof.join.ridership_complexes} matched · ${prof.join.accessibility_complexes_without_ridership} SIR stations have no ridership</td></tr>
+      <tr><td>NOAA weather</td><td class="n">3 stations · ${prof.weather.wet_days_ge_2_5mm} wet days (≥ 2.5 mm) · used for dry-day robustness</td></tr>
+      <tr><td>DOT 311</td><td class="n">${fmt(prof["311"].rows)} requests · ${fmt(prof["311"].missing_coords)} without coordinates dropped</td></tr>
+      <tr><td>NYPD collisions</td><td class="n">${fmt(prof.crashes.rows)} crashes · ${prof.crashes.missing_or_invalid_coords} bad coordinates dropped</td></tr>
+      </table></div>
+      <p>All joins are at the station-complex level (one row per complex), so no many-to-many joins inflate counts. 311 and crash counts are per-station context within 400 m and are never summed across stations.</p></div>
+  </div>`;
+}
+
+function renderEvidenceLive() {
+  if (!$("chCurve")) return;
+  const K = 50, B0 = M.gapIndex(P, []);
+  const opt = M.greedy(P, K, { mode: S.mode, T: S.T, floor: S.floor, groups: GROUPS, exclude: S.exclude }).map(x => x.j);
+  const pool = P.cands.filter(c => !S.exclude.has(c));
+  const sa = pool.map(j => { let g = 0; for (let i = 0; i < N; i++) { const d = P.D[i * N + j]; if (d < P.d0[i]) g += P.u[i] * (P.d0[i] - d); } return [j, g]; })
+    .sort((a, b) => b[1] - a[1]).map(x => x[0]);
+  const toPct = c => c.map(v => 100 * (1 - v / B0));
+  const xs = [...Array(K + 1).keys()];
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const draws = [];
+  for (let d = 0; d < 200; d++) { const a = pool.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } draws.push(toPct(M.curve(P, a, K))); }
+  const q = (k, p) => { const v = draws.map(d => d[k]).sort((a, b) => a - b); return v[Math.floor(p * (v.length - 1))]; };
+  const lo = xs.map(k => q(k, .05)), hi = xs.map(k => q(k, .95));
+  Plotly.react("chCurve", [
+    { x: xs, y: hi, mode: "lines", line: { width: 0 }, hoverinfo: "skip", showlegend: false },
+    { x: xs, y: lo, mode: "lines", line: { width: 0 }, fill: "tonexty", fillcolor: css("--line"), name: "Random (5–95%)", hoverinfo: "skip" },
+    { x: xs, y: toPct(M.curve(P, sa, K)), name: "Stand-alone score", line: { color: css("--partial"), width: 2 }, hovertemplate: "K=%{x}: %{y:.1f}%<extra>Stand-alone</extra>" },
+    { x: xs, y: toPct(M.curve(P, BUSIEST, K)), name: "Busiest first", line: { color: css("--pick"), width: 2 }, hovertemplate: "K=%{x}: %{y:.1f}%<extra>Busiest first</extra>" },
+    { x: xs, y: toPct(M.curve(P, opt, K)), name: "StepFree optimiser", line: { color: css("--stepfree"), width: 2.6 }, hovertemplate: "K=%{x}: %{y:.1f}%<extra>StepFree</extra>" },
+  ], plotLayout({ xaxis: Object.assign(plotLayout().xaxis, { title: { text: "Stations upgraded", font: { size: 12 } } }),
+                  yaxis: Object.assign(plotLayout().yaxis, { title: { text: "Gap closed (%)", font: { size: 12 } }, rangemode: "tozero" }),
+                  hovermode: "x unified",
+                  shapes: [{ type: "line", x0: S.K, x1: S.K, y0: 0, y1: 1, yref: "paper", line: { color: css("--ink-3"), width: 1, dash: "dot" } }] }), PCFG);
+
+  const picks = PLAN.map(x => x.j), g1 = M.gapsAfter(P, picks);
+  const bors = ["Bronx", "Brooklyn", "Manhattan", "Queens"];
+  const wg = (g, b) => { let a = 0, w = 0; for (let i = 0; i < N; i++) if (GROUPS[i] === b) { a += P.u[i] * g[i]; w += P.u[i]; } return a / w; };
+  const nUp = b => picks.filter(j => GROUPS[j] === b).length;
+  Plotly.react("chBorough", [
+    { y: bors, x: bors.map(b => wg(P.d0, b)), type: "bar", orientation: "h", name: "Today", marker: { color: css("--none") }, hovertemplate: "%{y}: %{x:.2f} km<extra>Today</extra>" },
+    { y: bors, x: bors.map(b => wg(g1, b)), type: "bar", orientation: "h", name: "After plan", marker: { color: css("--stepfree") },
+      text: bors.map(b => nUp(b) + " upgrades"), textposition: "outside", cliponaxis: false, textfont: { color: css("--ink-2"), size: 11 },
+      hovertemplate: "%{y}: %{x:.2f} km<extra>After plan</extra>" },
+  ], plotLayout({ barmode: "group", bargap: 0.3, margin: { l: 80, r: 70, t: 8, b: 44 },
+                  xaxis: Object.assign(plotLayout().xaxis, { title: { text: "Ridership-weighted gap (km)", font: { size: 12 } }, rangemode: "tozero" }),
+                  yaxis: Object.assign(plotLayout().yaxis, { autorange: "reversed", gridcolor: "rgba(0,0,0,0)" }) }), PCFG);
+
+  const o = MET.out_of_sample;
+  Plotly.react("chOos", [{ x: ["Busiest-first (Aug)", "StepFree (Aug)", "Oracle (Sep)"],
+    y: [o.reduction_busiest_first_aug, o.reduction_greedy_trained_on_aug, o.reduction_oracle_trained_on_sep].map(v => 100 * v),
+    type: "bar", marker: { color: [css("--pick"), css("--stepfree"), css("--none")] }, width: 0.5,
+    text: [o.reduction_busiest_first_aug, o.reduction_greedy_trained_on_aug, o.reduction_oracle_trained_on_sep].map(v => pct(v)), textposition: "outside",
+    textfont: { color: css("--ink") }, cliponaxis: false, hovertemplate: "%{x}: %{y:.1f}%<extra></extra>" }],
+    plotLayout({ yaxis: Object.assign(plotLayout().yaxis, { title: { text: "Gap closed on Sep data (%)", font: { size: 12 } }, range: [0, 42] }), margin: { l: 52, r: 16, t: 16, b: 36 } }), PCFG);
+}
+
+// ------------------------------------------------------------------ method
+function renderMethod() {
+  const s = MET.setup;
+  $("method").innerHTML = `
+  <h2>The decision</h2>
+  <p>Under a 2022 legal settlement, the MTA agreed to make 95% of subway stations accessible by 2055 (source: NY Governor's office, June 2022). That means choosing, budget cycle by budget cycle, which station complexes get elevators next. StepFree NYC answers: <b>given a budget of K upgrades, which complexes should be next, and in what order, so that riders who need step-free access have the shortest trip to a usable station?</b></p>
+  <h2>Data and joins</h2>
+  <ul>
+    <li><b>MTA station-complex daily ridership</b> (424 complexes × 61 days). Demand weight = mean weekday entries, Labor Day excluded. Entries are estimated station entries, not crowding or exits.</li>
+    <li><b>MTA station accessibility</b> (496 stop rows, aggregated to 445 complexes; the 21 Staten Island Railway stations have no ridership and drop out). This is a <b>current snapshot</b>, which is the right input for a forward-looking plan. It is not treated as 2025 history.</li>
+    <li><b>NOAA daily weather</b>: flags 10 wet days (city mean ≥ 2.5 mm) so we can re-estimate demand on dry days only as a robustness check.</li>
+    <li><b>NYC 311 DOT requests</b> and <b>NYPD collisions</b>: counted within 400 m of each complex as street-approach context in the station panel. Not used in the ranking.</li>
+  </ul>
+  <p>Every join is at the station-complex level (one row per complex), so nothing is duplicated by many-to-many joins.</p>
+  <h2>Model</h2>
+  <span class="formula">For complex i:  R(i) routes,  A(i) routes with a step-free platform,  U(i) = R(i) − A(i)
+u(i)  = weekday entries(i) × |U(i)| / |R(i)|            (entries on routes without step-free access)
+d0(i) = km to nearest complex j with A(j) ∩ U(i) ≠ ∅     (current gap, capped at 5 km)
+After upgrading set S:  d(i) = min( d0(i),  min over j∈S with R(j) ∩ U(i) ≠ ∅ of km(i, j) )
+
+Access Gap Index  G(S) = Σ_i u(i) · d(i)        choose |S| = K to minimise G</span>
+  <p>This is a facility-location (p-median-type) problem. Its benefit function is monotone submodular, so the greedy algorithm carries a (1 − 1/e) ≈ 63% guarantee. We additionally solve the exact MILP with SciPy's HiGHS solver; greedy matched the optimum for K = 5, 10, 20 and 30. The coverage goal instead maximises Σ u(i)·1[d(i) ≤ T]. The borough guarantee is a quota-constrained greedy.</p>
+  <h2>Evaluation</h2>
+  <ul>
+    <li><b>Baselines:</b> busiest-first, most unmet entries first, stand-alone score, and 500 random orders.</li>
+    <li><b>Chronological hold-out:</b> plan on August weekdays, score on September weekdays.</li>
+    <li><b>Bootstrap:</b> 200 resamples of weekdays; frequency each complex appears in the top 20.</li>
+    <li><b>Sensitivity:</b> route rule, partial-access rule, distance cap, dry-day and weekend weights.</li>
+    <li><b>Parity:</b> this browser model is a port of the Python pipeline; a test confirms it reproduces the Python plan and metrics.</li>
+  </ul>
+  <h2>Limitations</h2>
+  <ul>
+    <li><b>Entries are a proxy.</b> The data does not say how many riders use wheelchairs, strollers or luggage, so the index measures exposure, not the number of disabled riders.</li>
+    <li><b>Straight-line distance.</b> Street-network and in-system travel time would be more accurate; distance is a consistent proxy across stations.</li>
+    <li><b>Equal-split assumption.</b> At partly step-free complexes, entries are split evenly across routes because route-level ridership is not available.</li>
+    <li><b>No costs.</b> Elevator costs vary a lot by station structure; the data has no cost field, so the model optimises benefit per upgrade, not per dollar. A cost column would turn this into a knapsack problem with the same code structure.</li>
+    <li><b>Snapshot accessibility.</b> Stations upgraded since the snapshot, elevator outages and in-progress projects are not modelled.</li>
+    <li><b>Exits and destinations ignored.</b> A rider also needs a step-free destination station; the model measures the origin side only.</li>
+    <li><b>Two months of demand.</b> Aug–Sep 2025 includes summer patterns; the Aug→Sep stability test suggests rankings are robust, but a full year would be better.</li>
+    <li><b>311 and crash context are not causal.</b> They reflect reporting behaviour and foot traffic.</li>
+  </ul>
+  <h2>Sources</h2>
+  <p>MTA Subway Hourly Ridership (data.ny.gov 5wq4-mkjj) · MTA Subway Stations (data.ny.gov 39hk-dx4f) · NYC 311 Service Requests (data.cityofnewyork.us erm2-nwe9) · NYPD Motor Vehicle Collisions (h9gi-nx95) · NOAA NCEI Daily Summaries. All supplied in the Rutgers DSC NYC in Motion repository; no external data used.</p>`;
+}
+
+// ------------------------------------------------------------------ boot
+initMap(); bind(); renderEvidenceStatic(); renderMethod(); update();
+showTab((location.hash || "#planner").slice(1), true);
+})();
+</script>
+</body>
+</html>

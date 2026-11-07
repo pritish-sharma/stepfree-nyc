@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+# Restricted data: Citi Bike trip histories must never be committed (not used by this project)
+data/public/citibike_combined_trips.csv.gz
+data/citibike_local/
+*.zip
+# Secrets
+.env
+*.key

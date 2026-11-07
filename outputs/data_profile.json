@@ -1,0 +1,83 @@
+{
+  "ridership": {
+    "rows": 25820,
+    "complexes": 424,
+    "days": 61,
+    "date_min": "2025-08-01",
+    "date_max": "2025-09-30",
+    "missing_values": 0,
+    "duplicate_complex_days": 0,
+    "complexes_per_day_min": 419,
+    "complex_days_missing": 44,
+    "zero_entry_rows": 0,
+    "boroughs": {
+      "Brooklyn": 9482,
+      "Manhattan": 7377,
+      "Queens": 4815,
+      "Bronx": 4146
+    },
+    "weekdays_used": 42,
+    "wet_weekdays": 7
+  },
+  "weather": {
+    "rows": 183,
+    "stations": [
+      "NY CITY CENTRAL PARK, NY US",
+      "LAGUARDIA AIRPORT, NY US",
+      "JFK INTERNATIONAL AIRPORT, NY US"
+    ],
+    "missing_values": 0,
+    "wet_days_ge_2_5mm": 10
+  },
+  "accessibility": {
+    "rows": 496,
+    "complexes": 445,
+    "ada_value_counts": {
+      "0": 322,
+      "1": 166,
+      "2": 8
+    }
+  },
+  "join": {
+    "ridership_complexes": 424,
+    "matched_to_accessibility": 424,
+    "accessibility_complexes_without_ridership": 21,
+    "note": "Unmatched accessibility complexes are the 21 Staten Island Railway stations, which are not in the subway ridership file."
+  },
+  "311": {
+    "rows": 34676,
+    "missing_coords": 4252,
+    "duplicate_keys": 0,
+    "top_types": {
+      "Street Condition": 11001,
+      "Traffic Signal Condition": 6534,
+      "Street Light Condition": 6510,
+      "Sidewalk Condition": 5103,
+      "Curb Condition": 1443,
+      "Street Sign - Damaged": 820,
+      "Outdoor Dining": 735,
+      "Street Sign - Missing": 568
+    }
+  },
+  "crashes": {
+    "rows": 14526,
+    "missing_or_invalid_coords": 460,
+    "missing_borough": 2777,
+    "duplicate_ids": 0,
+    "persons_injured": 9052,
+    "persons_killed": 46
+  },
+  "stations": {
+    "status_counts": {
+      "none": 290,
+      "full": 120,
+      "partial": 14
+    },
+    "weekday_entries_total": 4028766.5,
+    "weekday_entries_by_status": {
+      "full": 2011600.0,
+      "none": 1672158.0,
+      "partial": 345008.0
+    }
+  }
+}

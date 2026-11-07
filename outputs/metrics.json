@@ -1,0 +1,232 @@
+{
+  "setup": {
+    "n_complexes": 424,
+    "n_candidates": 296,
+    "candidate_status": {
+      "none": 290,
+      "partial": 6
+    },
+    "unmet_weekday_entries": 1781943.5251984126,
+    "total_weekday_entries": 4028766.4999999995,
+    "gap_index_now": 1724890.1842037924,
+    "cap_km": 5.0,
+    "stations_at_cap": 0
+  },
+  "current_gap": {
+    "entry_weighted_mean_gap_km": 0.9679825201035663,
+    "median_gap_km_unmet_stations": 0.8385724567616168,
+    "p90_gap_km_unmet_stations": 2.022250827091114,
+    "share_unmet_demand_gap_over_1km": 0.34316405187385063,
+    "share_unmet_demand_gap_over_2km": 0.06413971018364073
+  },
+  "baselines": {
+    "K5": {
+      "greedy": 0.13075491944689366,
+      "busiest_first": 0.056578066454672116,
+      "most_unmet_entries": 0.056578066454672116,
+      "standalone_score": 0.11569174938958493,
+      "random_mean": 0.03419679803093589,
+      "greedy_vs_busiest_extra_reduction_rel": 1.3110531631838072,
+      "busiest_first_upgrades_to_match": 14
+    },
+    "K10": {
+      "greedy": 0.21572771823931747,
+      "busiest_first": 0.0992993911629454,
+      "most_unmet_entries": 0.10436751548061685,
+      "standalone_score": 0.1362265747838428,
+      "random_mean": 0.06576200320701153,
+      "greedy_vs_busiest_extra_reduction_rel": 1.172497894627762,
+      "busiest_first_upgrades_to_match": 23
+    },
+    "K20": {
+      "greedy": 0.3377340981592054,
+      "busiest_first": 0.18876352830803067,
+      "most_unmet_entries": 0.18501050094455584,
+      "standalone_score": 0.2213263994848973,
+      "random_mean": 0.12530161078881474,
+      "greedy_vs_busiest_extra_reduction_rel": 0.7891914883476834,
+      "busiest_first_upgrades_to_match": 39
+    },
+    "K30": {
+      "greedy": 0.4226480862451856,
+      "busiest_first": 0.2733202025524335,
+      "most_unmet_entries": 0.2671186798517886,
+      "standalone_score": 0.25804488840410866,
+      "random_mean": 0.1817741410416347,
+      "greedy_vs_busiest_extra_reduction_rel": 0.5463477719474659,
+      "busiest_first_upgrades_to_match": 50
+    },
+    "K50": {
+      "greedy": 0.5450128555123425,
+      "busiest_first": 0.4230676954713175,
+      "most_unmet_entries": 0.4277621922563284,
+      "standalone_score": 0.38703980280489236,
+      "random_mean": 0.28438072507207857,
+      "greedy_vs_busiest_extra_reduction_rel": 0.28824030136636236,
+      "busiest_first_upgrades_to_match": null
+    }
+  },
+  "overlap_greedy_busiest_top20": 8,
+  "coverage": {
+    "T0.5": {
+      "share_unmet_covered_now": 0.15301685759603145,
+      "share_after_greedy_coverage_K20": 0.37500541414097355,
+      "share_after_busiest_K20": 0.31852373708055604,
+      "share_after_gap_greedy_K20": 0.31974700015453206
+    },
+    "T1.0": {
+      "share_unmet_covered_now": 0.6568359481261493,
+      "share_after_greedy_coverage_K20": 0.8706827971131722,
+      "share_after_busiest_K20": 0.7240722772104288,
+      "share_after_gap_greedy_K20": 0.8498326894861208
+    }
+  },
+  "milp": {
+    "K5": {
+      "optimal_reduction": 0.13075491944689366,
+      "greedy_reduction": 0.13075491944689366,
+      "greedy_share_of_optimal_gain": 1.0,
+      "same_set": true,
+      "overlap": 5,
+      "solver": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.03
+    },
+    "K10": {
+      "optimal_reduction": 0.21572771823931747,
+      "greedy_reduction": 0.21572771823931747,
+      "greedy_share_of_optimal_gain": 1.0,
+      "same_set": true,
+      "overlap": 10,
+      "solver": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.02
+    },
+    "K20": {
+      "optimal_reduction": 0.3377340981592054,
+      "greedy_reduction": 0.3377340981592054,
+      "greedy_share_of_optimal_gain": 1.0,
+      "same_set": true,
+      "overlap": 20,
+      "solver": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.02
+    },
+    "K30": {
+      "optimal_reduction": 0.4226480862451856,
+      "greedy_reduction": 0.4226480862451856,
+      "greedy_share_of_optimal_gain": 1.0,
+      "same_set": true,
+      "overlap": 30,
+      "solver": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.02
+    }
+  },
+  "out_of_sample": {
+    "train": "Aug 2025 weekdays",
+    "test": "Sep 2025 weekdays (excl. Labor Day)",
+    "reduction_greedy_trained_on_aug": 0.33291580874601356,
+    "reduction_oracle_trained_on_sep": 0.3359576609953171,
+    "reduction_busiest_first_aug": 0.1819307796819638,
+    "overlap_aug_plan_vs_sep_oracle": 16,
+    "spearman_station_weights_aug_vs_sep": 0.9956924142599632,
+    "sep_over_aug_total_weekday_entries": 1.1255560566030782
+  },
+  "bootstrap": {
+    "replicates": 200,
+    "greedy_top20_mean_selection_freq": 0.9754999999999999,
+    "greedy_top20_selected_in_ge_90pct": 18,
+    "stations_ever_selected": 23
+  },
+  "sensitivity_top20_overlap": {
+    "any_route_alternative": {
+      "overlap_of_20": 6,
+      "reduction_own_objective": 0.3003271438666264
+    },
+    "strict_partial (one-direction ADA = not step-free)": {
+      "overlap_of_20": 19,
+      "reduction_own_objective": 0.343651079608301
+    },
+    "cap_3km": {
+      "overlap_of_20": 20,
+      "reduction_own_objective": 0.33356952056252187
+    },
+    "cap_8km": {
+      "overlap_of_20": 20,
+      "reduction_own_objective": 0.3377340981592054
+    },
+    "dry_weekday_weights": {
+      "overlap_of_20": 20,
+      "reduction_own_objective": 0.33791896373711783
+    },
+    "weekend_weights": {
+      "overlap_of_20": 16,
+      "reduction_own_objective": 0.35878283043516845
+    }
+  },
+  "borough_equity": [
+    {
+      "borough": "Bronx",
+      "complexes": 68,
+      "weekday_entries": 292989.0714285715,
+      "share_entries_full_step_free": 0.4601523004961749,
+      "share_complexes_no_step_free": 0.6911764705882353,
+      "entry_weighted_gap_km": 0.9017038041529588,
+      "entry_weighted_gap_km_after_top20": 0.9017038041529588,
+      "gap_index_share": 0.08268469476372342,
+      "top20_upgrades": 0
+    },
+    {
+      "borough": "Brooklyn",
+      "complexes": 156,
+      "weekday_entries": 894972.9285714285,
+      "share_entries_full_step_free": 0.3983503305221017,
+      "share_complexes_no_step_free": 0.7564102564102564,
+      "entry_weighted_gap_km": 1.1861004861535485,
+      "entry_weighted_gap_km_after_top20": 0.8002313531592063,
+      "gap_index_share": 0.3531216251672999,
+      "top20_upgrades": 6
+    },
+    {
+      "borough": "Manhattan",
+      "complexes": 121,
+      "weekday_entries": 2221432.6904761903,
+      "share_entries_full_step_free": 0.5473179347695315,
+      "share_complexes_no_step_free": 0.5867768595041323,
+      "entry_weighted_gap_km": 0.8045144254740463,
+      "entry_weighted_gap_km_after_top20": 0.46290615101042193,
+      "gap_index_share": 0.3805441080504259,
+      "top20_upgrades": 11
+    },
+    {
+      "borough": "Queens",
+      "complexes": 79,
+      "weekday_entries": 619371.8095238096,
+      "share_entries_full_step_free": 0.49152705260199114,
+      "share_complexes_no_step_free": 0.6835443037974683,
+      "entry_weighted_gap_km": 1.0761714457121536,
+      "entry_weighted_gap_km_after_top20": 0.7171338785206145,
+      "gap_index_share": 0.1836495720185507,
+      "top20_upgrades": 3
+    }
+  ],
+  "borough_kruskal_wallis": {
+    "H": 18.1216512828222,
+    "p_value": 0.0004151553693176352,
+    "note": "Station-level current gaps among complexes with unmet routes; stations are spatially correlated, so treat p as descriptive, not confirmatory."
+  },
+  "equity_floor": {
+    "min_1_per_borough": {
+      "reduction": 0.33309298476039373,
+      "cost_vs_unconstrained_pct_points": 0.00464111339881168,
+      "bronx_upgrades": 1
+    },
+    "min_2_per_borough": {
+      "reduction": 0.3282774135622316,
+      "cost_vs_unconstrained_pct_points": 0.009456684596973797,
+      "bronx_upgrades": 2
+    },
+    "min_3_per_borough": {
+      "reduction": 0.3231589357094571,
+      "cost_vs_unconstrained_pct_points": 0.014575162449748325,
+      "bronx_upgrades": 3
+    }
+  }
+}
