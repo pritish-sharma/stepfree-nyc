@@ -265,6 +265,8 @@ pip install -r requirements.txt
 
 The whole pipeline runs in about 10 seconds on a laptop. Random seeds are fixed (`numpy` seed 42; the app's random baseline uses a seeded generator).
 
+**Keynote deck:** open `presentation/index.html`. It is a single offline file, presenter-controlled (→ to advance, N for notes). `presentation/StepFree_NYC_Keynote.pdf` is the static backup. To rebuild it from the pipeline outputs, run `python3 presentation/build.py`. See `docs/presenter_guide.md`.
+
 **Notebook:** `notebooks/01_eda_and_validation.ipynb` covers the data audit, temporal patterns, gap distribution, the busiest-first comparison, and the weather check.
 
 ## 8. Repository layout
@@ -280,7 +282,8 @@ The whole pipeline runs in about 10 seconds on a laptop. Random seeds are fixed 
 │       ├── views/          CommandView · ValidationView · ExplorerView · MethodView
 │       └── styles/         tokens.css (design + motion tokens) · base · components · views
 ├── data/public/            the five provided CSVs (unchanged copies)
-├── docs/                   presentation outline, demo script, judge Q&A, screenshots
+├── docs/                   presenter guide, talk track, judge Q&A, screenshots
+├── presentation/           keynote: index.html (built, offline), PDF backup, build.py, src/deck.html + fonts
 ├── notebooks/              EDA + validation notebook
 ├── outputs/                metrics.json, plan, curves, figures
 ├── pipeline/               stepfree.py (model) + three numbered scripts

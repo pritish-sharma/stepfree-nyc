@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StepFree NYC Keynote</title>
+<style>
+/*__FONTS__*/
+/* ============================================================================
+   StepFree NYC — keynote. Fixed 1920×1080 stage, scaled to the screen.
+   Motion language: one easing family, three speeds, text revealed by importance
+   (headlines: line masks · statements: word rise · annotations: typed · numbers: counted).
+   ========================================================================== */
+:root {
+  --black: #030608; --graphite: #0a1117; --graphite-2: #0f1922; --edge: rgba(140, 205, 235, .14); --edge-hi: rgba(120, 215, 255, .45);
+  --cyan: #4fd1ff; --ice: #a9d6ea; --white: #eef5f8; --steel: #8ea3b0; --steel-2: #5d707c; --slate: #3c4b55; --amber: #ffb547;
+  --f-ui: "Barlow", "Segoe UI", system-ui, sans-serif; --f-cond: "Barlow Semi Condensed", "Barlow", "Arial Narrow", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --e-out: cubic-bezier(.16, 1, .3, 1); --e-io: cubic-bezier(.65, 0, .35, 1);
+  --t1: 260ms; --t2: 620ms; --t3: 1100ms;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #000; overflow: hidden; }
+body { color: var(--white); font-family: var(--f-ui); -webkit-font-smoothing: antialiased; cursor: none; }
+body.cursor { cursor: default; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 50% 50%; background: var(--black); overflow: hidden; }
+
+/* ---------- environment: grid + ambient light (static; fades in once) ---------- */
+.env { position: absolute; inset: 0; pointer-events: none; }
+.env-grid { background:
+  linear-gradient(rgba(120, 190, 230, .05) 1px, transparent 1px) 0 0 / 48px 48px,
+  linear-gradient(90deg, rgba(120, 190, 230, .05) 1px, transparent 1px) 0 0 / 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 60% 50%, #000 20%, transparent 85%); mask-image: radial-gradient(ellipse 70% 70% at 60% 50%, #000 20%, transparent 85%);
+  opacity: 0; transition: opacity 1400ms var(--e-out); }
+.env-light { background: radial-gradient(900px 620px at 64% 48%, rgba(40, 130, 185, .16), transparent 70%); opacity: 0; transition: opacity 1600ms var(--e-out); }
+body.lit .env-grid, body.lit .env-light { opacity: 1; }
+.scan { position: absolute; left: 0; right: 0; top: -2px; height: 1px; background: linear-gradient(90deg, transparent, rgba(79, 209, 255, .85) 25%, rgba(79, 209, 255, .85) 75%, transparent);
+  box-shadow: 0 0 22px 3px rgba(79, 209, 255, .28); opacity: 0; pointer-events: none; z-index: 40; }
+.scan.go { animation: scan 1500ms var(--e-io) forwards; }
+@keyframes scan { 0% { opacity: 0; transform: translateY(0); } 8% { opacity: 1; } 92% { opacity: .9; } 100% { opacity: 0; transform: translateY(1082px); } }
+
+/* ---------- persistent chrome ---------- */
+.chrome { position: absolute; inset: 0; pointer-events: none; z-index: 30; opacity: 0; transition: opacity 900ms var(--e-out); }
+body.chrome-on .chrome { opacity: 1; }
+.c-top { position: absolute; left: 120px; right: 120px; top: 44px; display: flex; justify-content: space-between; align-items: center;
+  font: 500 19px/1 var(--f-mono); letter-spacing: .06em; color: var(--steel-2); }
+.c-brand { display: flex; align-items: center; gap: 14px; color: var(--steel); }
+.c-brand b { color: var(--cyan); font-weight: 500; }
+.c-section { color: var(--steel); transition: opacity var(--t1); }
+.c-bottom { position: absolute; left: 120px; right: 120px; bottom: 40px; display: flex; align-items: center; gap: 28px; }
+.ticks { display: flex; gap: 6px; flex: 1; }
+.ticks i { flex: 1; height: 2px; background: rgba(140, 205, 235, .14); position: relative; overflow: hidden; }
+.ticks i b { position: absolute; inset: 0; background: var(--cyan); transform-origin: left; transform: scaleX(0); transition: transform 700ms var(--e-out); box-shadow: 0 0 8px var(--cyan); }
+.c-index { font: 500 19px/1 var(--f-mono); color: var(--steel); letter-spacing: .08em; min-width: 92px; text-align: right; }
+.c-timer { font: 500 19px/1 var(--f-mono); color: var(--amber); display: none; }
+body.timer .c-timer { display: block; }
+
+/* ---------- slides ---------- */
+.slide { position: absolute; inset: 0; padding: 150px 120px 120px; opacity: 0; visibility: hidden; transform: scale(1.012); filter: blur(8px);
+  transition: opacity 700ms var(--e-out), transform 1000ms var(--e-out), filter 700ms var(--e-out), visibility 0s linear 700ms; }
+.slide.on { opacity: 1; visibility: visible; transform: none; filter: none; transition: opacity 700ms var(--e-out) 120ms, transform 1100ms var(--e-out) 120ms, filter 700ms var(--e-out) 120ms, visibility 0s; }
+.slide.out-l { transform: translateX(-60px) scale(.985); }
+.slide.out-r { transform: translateX(60px) scale(.985); }
+
+/* type scale */
+.eyebrow { font: 500 22px/1.2 var(--f-mono); letter-spacing: .08em; color: var(--cyan); white-space: pre; }
+.h-xl { font: 600 104px/1.02 var(--f-ui); letter-spacing: -.025em; }
+.h-l { font: 600 76px/1.06 var(--f-ui); letter-spacing: -.02em; }
+.h-m { font: 600 54px/1.12 var(--f-ui); letter-spacing: -.015em; }
+.lead { font: 400 34px/1.38 var(--f-ui); color: var(--steel); }
+.body { font: 400 28px/1.45 var(--f-ui); color: var(--steel); }
+.anno { font: 400 21px/1.5 var(--f-mono); color: var(--steel); }
+.anno b { color: var(--white); font-weight: 500; }
+.big { font: 600 200px/.9 var(--f-cond); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.big small { font-size: .38em; letter-spacing: 0; color: var(--steel); margin-left: 10px; font-weight: 500; }
+.mid { font: 600 120px/.92 var(--f-cond); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.cyan { color: var(--cyan); } .amber { color: var(--amber); } .ice { color: var(--ice); } .white { color: var(--white); } .steel { color: var(--steel); }
+.rule-h { height: 1px; background: var(--edge); }
+.label { font: 600 20px/1.2 var(--f-cond); letter-spacing: .16em; text-transform: uppercase; color: var(--steel-2); }
+
+/* ---------- FX initial states (engine adds .go / .done) ---------- */
+[data-fx] { opacity: 0; }
+[data-fx].done { opacity: 1; }
+[data-fx="fade"].go { opacity: 1; transition: opacity var(--t2) var(--e-out); }
+[data-fx="rise"] { transform: translateY(18px); }
+[data-fx="rise"].go, [data-fx="rise"].done { opacity: 1; transform: none; transition: opacity var(--t2) var(--e-out), transform var(--t2) var(--e-out); }
+[data-fx="headline"] { opacity: 1; }
+.ln { display: block; overflow: hidden; padding-bottom: .06em; margin-bottom: -.06em; }
+.ln-i { display: inline-block; transform: translateY(105%); }
+.go .ln-i { transform: none; transition: transform 1000ms var(--e-out); transition-delay: calc(var(--k) * 110ms); }
+.done .ln-i { transform: none; }
+[data-fx="words"] { opacity: 1; }
+.w { display: inline-block; opacity: 0; transform: translateY(10px); filter: blur(6px); }
+.go .w { opacity: 1; transform: none; filter: none; transition: opacity 700ms var(--e-out), transform 700ms var(--e-out), filter 700ms var(--e-out); transition-delay: calc(var(--k) * 42ms); }
+.done .w { opacity: 1; transform: none; filter: none; }
+[data-fx="type"] { opacity: 1; }
+[data-fx="type"]:not(.go):not(.done) { visibility: hidden; }
+.caret { display: inline-block; width: .55em; height: 1em; background: var(--cyan); vertical-align: -.12em; margin-left: 2px; animation: blink 1s steps(1) infinite; box-shadow: 0 0 8px rgba(79, 209, 255, .6); }
+@keyframes blink { 50% { opacity: 0; } }
+[data-fx="lines"] { opacity: 1; }
+[data-fx="lines"] > * { opacity: 0; transform: translateX(-14px); }
+[data-fx="lines"].go > * { opacity: 1; transform: none; transition: opacity 600ms var(--e-out), transform 600ms var(--e-out); transition-delay: calc(var(--k) * 140ms); }
+[data-fx="lines"].done > * { opacity: 1; transform: none; }
+[data-fx="count"] { font-variant-numeric: tabular-nums; }
+[data-fx="count"].go { opacity: 1; }
+[data-fx="wipe"] { clip-path: inset(0 100% 0 0); opacity: 1; }
+[data-fx="wipe"].go { clip-path: inset(0 0 0 0); transition: clip-path 1100ms var(--e-io); }
+[data-fx="wipe"].done { clip-path: none; }
+[data-fx="draw"] { opacity: 1; }
+
+/* ---------- SVG map ---------- */
+.map { position: absolute; overflow: hidden; }
+.map .net { fill: none; stroke: rgba(79, 209, 255, .22); stroke-width: 1.1; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.map circle.st { fill: var(--slate); opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(.2); transition: opacity 700ms var(--e-out), transform 700ms var(--e-out), fill 700ms var(--e-out); transition-delay: var(--dl, 0ms); }
+.map.lit circle.st { opacity: .95; transform: none; }
+.map circle.st.f { fill: var(--cyan); }
+.map circle.st.p { fill: #8ea8ff; }
+.map.focus-none circle.st.f, .map.focus-none circle.st.p { fill: #1d3a49; }
+.map.focus-none circle.st.n { fill: var(--ice); }
+.map.dim circle.st { fill: #22323c !important; opacity: .55; }
+.map .glow { filter: url(#glow); }
+.ring { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(2.2); transition: opacity 500ms var(--e-out), transform 700ms var(--e-out); }
+.ring.on { opacity: 1; transform: none; }
+.ring.ice { stroke: var(--ice); } .ring.amber { stroke: var(--amber); } .ring.white { stroke: var(--white); }
+.link { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.link.cyan { stroke: var(--cyan); stroke-dasharray: 5 5; }
+.link.amber { stroke: var(--amber); }
+.maplabel { font-family: var(--f-mono); font-weight: 500; fill: var(--white); paint-order: stroke; stroke: var(--black); opacity: 0; transition: opacity 500ms var(--e-out); }
+.maplabel.on { opacity: 1; }
+.maplabel.dim { fill: var(--steel); }
+
+/* ---------- charts ---------- */
+.chart text { font: 400 19px var(--f-mono); fill: var(--steel-2); }
+.chart .gl { stroke: rgba(140, 205, 235, .08); }
+.chart .ax { stroke: rgba(140, 205, 235, .3); }
+.chart .s-busy { stroke: var(--ice); stroke-width: 3; fill: none; }
+.chart .s-opt { stroke: var(--cyan); stroke-width: 4; fill: none; filter: url(#glow); }
+.chart .band { fill: rgba(140, 205, 235, .08); opacity: 0; transition: opacity 900ms var(--e-out); }
+.chart .band.on { opacity: 1; }
+
+/* ---------- components ---------- */
+.frame { position: relative; border: 1px solid var(--edge); background: linear-gradient(180deg, rgba(15, 25, 34, .7), rgba(8, 14, 19, .7)); }
+.frame::before { content: ""; position: absolute; inset: -1px; pointer-events: none; --c: var(--edge-hi); --l: 14px;
+  background: linear-gradient(var(--c), var(--c)) top left / var(--l) 1px no-repeat, linear-gradient(var(--c), var(--c)) top left / 1px var(--l) no-repeat,
+  linear-gradient(var(--c), var(--c)) top right / var(--l) 1px no-repeat, linear-gradient(var(--c), var(--c)) top right / 1px var(--l) no-repeat,
+  linear-gradient(var(--c), var(--c)) bottom left / var(--l) 1px no-repeat, linear-gradient(var(--c), var(--c)) bottom left / 1px var(--l) no-repeat,
+  linear-gradient(var(--c), var(--c)) bottom right / var(--l) 1px no-repeat, linear-gradient(var(--c), var(--c)) bottom right / 1px var(--l) no-repeat; }
+.node { position: absolute; padding: 22px 24px; display: flex; flex-direction: column; gap: 8px; }
+.node .t { font: 600 30px/1.15 var(--f-ui); color: var(--white); }
+.node .s { font: 400 20px/1.4 var(--f-mono); color: var(--steel); }
+.node.key { border-color: rgba(79, 209, 255, .45); box-shadow: 0 0 40px rgba(79, 209, 255, .08) inset; }
+.node.ok .s b { color: #7fe3b8; font-weight: 500; }
+.col { position: absolute; display: flex; flex-direction: column; gap: 18px; }
+.list > div { display: flex; gap: 18px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--edge); font: 400 28px/1.35 var(--f-ui); color: var(--steel); }
+.list > div b { color: var(--white); font-weight: 600; }
+.list .mk { font: 500 20px var(--f-mono); color: var(--cyan); flex: none; width: 34px; }
+.list.amber .mk { color: var(--amber); }
+.kv { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--edge); font: 400 24px/1.3 var(--f-ui); color: var(--steel); }
+.kv b { font: 500 24px var(--f-mono); color: var(--white); white-space: nowrap; }
+.inst { position: absolute; top: 420px; width: 395px; padding: 30px 28px; display: flex; flex-direction: column; gap: 16px; min-height: 420px; }
+.inst .n { font: 600 104px/.9 var(--f-cond); letter-spacing: -.02em; }
+.inst .d { font: 400 22px/1.4 var(--f-ui); color: var(--steel); }
+.dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; margin-top: 6px; }
+.dots i { aspect-ratio: 1; border-radius: 50%; background: var(--cyan); }
+.vbars { display: flex; gap: 20px; align-items: flex-end; height: 230px; margin-top: 4px; }
+.vbars > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+.vbars i { width: 100%; background: var(--ice); transform-origin: bottom; transform: scaleY(0); transition: transform 1100ms var(--e-out); }
+.vbars .go i, .vbars.go i, .vbars.done i { transform: none; }
+.vbars span { font: 500 20px var(--f-mono); color: var(--white); }
+.vbars em { font: 400 17px/1.2 var(--f-mono); color: var(--steel-2); font-style: normal; text-align: center; }
+.hb { display: grid; grid-template-columns: 170px 1fr; gap: 10px 20px; align-items: center; }
+.hb .nm { font: 500 26px var(--f-ui); color: var(--steel); text-align: right; }
+.hb .bars { display: flex; flex-direction: column; gap: 6px; }
+.hb .bar { height: 24px; position: relative; }
+.hb .bar i { position: absolute; inset: 0 auto 0 0; transform-origin: left; transform: scaleX(0); transition: transform 1100ms var(--e-out); }
+.hb .bar span { position: absolute; top: 50%; transform: translateY(-50%); font: 500 19px var(--f-mono); color: var(--steel); white-space: nowrap; opacity: 0; transition: opacity 600ms var(--e-out) 500ms; }
+.hb.go .bar i, .hb.done .bar i { transform: none; } .hb.go .bar span, .hb.done .bar span { opacity: 1; }
+.hb .row-hot .nm { color: var(--amber); }
+.shot { position: absolute; border: 1px solid var(--edge-hi); box-shadow: 0 40px 120px rgba(0, 0, 0, .7), 0 0 0 1px rgba(0, 0, 0, .8), 0 0 80px rgba(79, 209, 255, .06); }
+.callout { position: absolute; display: flex; align-items: center; gap: 14px; font: 500 21px/1.3 var(--f-mono); color: var(--white); }
+.callout::before { content: ""; width: 10px; height: 10px; border: 2px solid var(--cyan); transform: rotate(45deg); flex: none; }
+
+/* ---------- notes overlay (presenter, key N) ---------- */
+#notes { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); width: min(1100px, 94vw); max-height: 40vh; overflow: auto; z-index: 100;
+  background: rgba(3, 6, 8, .96); border: 1px solid rgba(255, 181, 71, .5); padding: 16px 20px; font: 400 17px/1.5 var(--f-ui); color: #d8e2e7; display: none; }
+body.notes #notes { display: block; }
+#notes b { color: var(--amber); font: 600 13px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+#help { position: fixed; right: 16px; top: 14px; z-index: 100; font: 400 13px var(--f-mono); color: #4d5d67; opacity: 0; transition: opacity 400ms; }
+body.cursor #help { opacity: 1; }
+
+/* ---------- print / PDF: every slide, final state ---------- */
+body.print { overflow: visible; background: var(--black); cursor: default; }
+body.print #stage { position: relative; left: 0; top: 0; transform: none !important; height: auto; overflow: visible; background: none; }
+body.print .slide { position: relative; height: 1080px; opacity: 1; visibility: visible; transform: none; filter: none; transition: none; page-break-after: always; break-after: page; overflow: hidden; background: var(--black); }
+body.print .slide::before { content: ""; position: absolute; inset: 0; z-index: -1; background:
+  radial-gradient(900px 620px at 64% 48%, rgba(40, 130, 185, .14), transparent 70%),
+  linear-gradient(rgba(120, 190, 230, .045) 1px, transparent 1px) 0 0 / 48px 48px, linear-gradient(90deg, rgba(120, 190, 230, .045) 1px, transparent 1px) 0 0 / 48px 48px; }
+body.print .env, body.print .chrome, body.print .scan { display: none; }
+body.print .slide:last-of-type { page-break-after: auto; break-after: auto; }
+body.print * { transition: none !important; animation: none !important; }
+@page { size: 1920px 1080px; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .slide, .slide.on { transition-duration: 1ms !important; } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="env env-light"></div>
+  <div class="env env-grid"></div>
+  <div class="scan" id="scan"></div>
+
+  <!-- persistent chrome: real information only -->
+  <div class="chrome">
+    <div class="c-top">
+      <div class="c-brand"><svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="#4fd1ff" stroke-width="1.6"/><path d="M9 21h4v-4h4v-4h4v-4h2" stroke="#eef5f8" stroke-width="2"/><circle cx="23" cy="9" r="2" fill="#ffb547"/></svg>STEP<b>FREE</b> // NYC</div>
+      <div class="c-section" id="cSection"></div>
+      <div>HISTORICAL DATA · AUG 01 – SEP 30 2025</div>
+    </div>
+    <div class="c-bottom"><div class="ticks" id="ticks"></div><div class="c-timer" id="timer">00:00</div><div class="c-index" id="cIndex">01 / 11</div></div>
+  </div>
+
+  <!-- ===================================================== 01 OPENING -->
+  <section class="slide" id="open" data-section="" data-notes="Let the opening play (about 5 seconds). Then: “In 2022 the MTA agreed to make 95% of subway stations accessible by 2055. That is decades of elevator projects, and every capital cycle someone decides which stations go next. Our question: given a budget, which stations should get elevators next?”">
+    <svg class="map" id="mapOpen" style="left:900px;top:70px;width:880px;height:960px"></svg>
+    <div class="col" style="left:120px;top:250px;width:860px;gap:34px">
+      <div class="eyebrow" data-fx="type" data-b="0" data-d="1500" data-speed="34">STEPFREE // NYC</div>
+      <h1 class="h-xl" data-fx="headline" data-b="0" data-d="2500"><span>Which subway</span><span>stations should</span><span>get elevators next?</span></h1>
+      <p class="lead" data-fx="words" data-b="0" data-d="3300" style="width:760px">An optimisation model and planning tool for New York’s subway accessibility program.</p>
+    </div>
+    <div class="col" style="left:120px;top:850px;gap:10px">
+      <div class="anno" data-fx="type" data-b="0" data-d="4100" data-speed="12"><span class="cyan">●</span> <b>424</b> station complexes · <b>25,820</b> ridership records · 5 NYC open datasets</div>
+      <div class="anno" data-fx="fade" data-b="0" data-d="4600">[Team names] · Rutgers Data Science Club · NYC in Motion · 7 Nov 2026</div>
+    </div>
+  </section>
+
+  <!-- ===================================================== 02 PROBLEM -->
+  <section class="slide" id="problem" data-section="01 · THE PROBLEM" data-notes="“In the station file we were given, 296 of 424 subway complexes lack step-free access on at least one route.” [→] “Riders entering on those routes are on average almost a kilometre from a step-free station that serves their line.” [→] The dashed lines are real: each is a station and its nearest same-route step-free alternative today. [→] The 2055 commitment.">
+    <svg class="map" id="mapProblem" style="left:860px;top:90px;width:940px;height:960px"></svg>
+    <div class="col" style="left:120px;top:170px;width:760px;gap:20px">
+      <div class="eyebrow" data-fx="type" data-b="0">01 — THE PROBLEM</div>
+      <h2 class="h-l" data-fx="headline" data-b="0" data-d="200"><span>Most of the subway</span><span>still starts with stairs.</span></h2>
+      <div data-fx="rise" data-b="1" style="margin-top:20px"><div class="big" style="font-size:170px"><span data-fx="count" data-b="1" data-to="296">0</span><small>/ 424</small></div>
+        <div class="body" style="margin-top:14px;width:640px">complexes lack step-free access on at least one route</div></div>
+      <div data-fx="rise" data-b="2" style="margin-top:6px"><div class="mid cyan"><span data-fx="count" data-b="2" data-to="0.97" data-dec="2">0</span><small class="steel" style="font-size:.4em;margin-left:10px">km</small></div>
+        <div class="body" style="margin-top:10px;width:700px">average trip to a step-free station on the same route, for riders on those routes</div></div>
+    </div>
+    <div class="anno" data-fx="type" data-b="3" data-speed="14" style="position:absolute;left:120px;top:952px;width:740px">MTA 2022 settlement → 95% of stations accessible by 2055. <b>Every capital cycle is a sequencing decision.</b></div>
+  </section>
+
+  <!-- ===================================================== 03 THE OBVIOUS RULE -->
+  <section class="slide" id="rule" data-section="02 · THE OBVIOUS RULE" data-notes="“The obvious rule: upgrade the busiest inaccessible stations first.” The rings light up in ridership order. [→] “But busy stations often already sit a few hundred metres from a step-free station on the same line. Their riders’ average detour is far shorter than at the stations our model picks.”">
+    <svg class="map" id="mapRule" style="left:120px;top:90px;width:860px;height:960px"></svg>
+    <div class="col" style="left:1060px;top:220px;width:740px;gap:30px">
+      <div class="eyebrow" data-fx="type" data-b="0">02 — THE OBVIOUS RULE</div>
+      <h2 class="h-l" data-fx="headline" data-b="0" data-d="200"><span>“Upgrade the busiest</span><span>stations first.”</span></h2>
+      <p class="lead" data-fx="words" data-b="0" data-d="900">The 20 busiest inaccessible complexes carry <span class="white" id="ruleEntries"></span> weekday entries.</p>
+      <div data-fx="rise" data-b="1" style="margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px">
+        <div><div class="label">Busiest 20 · avg. detour</div><div class="mid ice" style="margin-top:12px"><span data-fx="count" data-b="1" data-to="0" data-dec="2" id="ruleBusyGap">0</span><small class="steel" style="font-size:.4em;margin-left:8px">km</small></div></div>
+        <div><div class="label">Model’s 20 · avg. detour</div><div class="mid cyan" style="margin-top:12px"><span data-fx="count" data-b="1" data-d="250" data-to="0" data-dec="2" id="rulePlanGap">0</span><small class="steel" style="font-size:.4em;margin-left:8px">km</small></div></div>
+      </div>
+      <p class="body" data-fx="words" data-b="1" data-d="500">Busy stations often already have a step-free option nearby on the same line. Only <span class="white" id="ruleOverlap"></span> of 20 stations appear on both lists.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== 04 DISCOVERY -->
+  <section class="slide" id="discovery" data-section="03 · THE DISCOVERY" data-notes="Chart axes appear. [→] Busiest-first draws: 18.9% of the gap closed at 20 upgrades. [→] Our optimiser draws: 33.8%. Grey band = 500 random orders. [→] “Busiest-first needs 39 upgrades to reach what our plan does with 20.” That is the finding.">
+    <div class="col" style="left:120px;top:180px;width:1680px;gap:22px">
+      <div class="eyebrow" data-fx="type" data-b="0">03 — THE DISCOVERY</div>
+      <h2 class="h-l" data-fx="headline" data-b="0" data-d="200"><span>Same budget. <span class="cyan">79% more</span> of the gap closed.</span></h2>
+    </div>
+    <svg class="chart" id="chart" style="position:absolute;left:120px;top:380px;width:1120px;height:600px" overflow="visible"></svg>
+    <div class="col" style="left:1340px;top:420px;width:460px;gap:46px">
+      <div data-fx="rise" data-b="1"><div class="label">Busiest-first · 20 upgrades</div><div class="mid ice" style="margin-top:10px"><span data-fx="count" data-b="1" data-d="900" data-to="18.9" data-dec="1">0</span><small class="steel" style="font-size:.4em">%</small></div></div>
+      <div data-fx="rise" data-b="2"><div class="label">StepFree optimiser · 20 upgrades</div><div class="mid cyan" style="margin-top:10px"><span data-fx="count" data-b="2" data-d="900" data-to="33.8" data-dec="1">0</span><small class="steel" style="font-size:.4em">%</small></div></div>
+      <div data-fx="rise" data-b="3"><div class="label" style="color:var(--amber)">To match it, busiest-first needs</div><div class="mid amber" style="margin-top:10px"><span data-fx="count" data-b="3" data-d="500" data-to="39">0</span><small class="steel" style="font-size:.4em">upgrades</small></div></div>
+    </div>
+    <div class="anno" data-fx="fade" data-b="2" data-d="1200" style="position:absolute;left:120px;top:332px">Share of the Access Gap Index closed · grey band: 500 random orders (5–95%)</div>
+  </section>
+
+  <!-- ===================================================== 05 CASE -->
+  <section class="slide" id="case" data-section="04 · WHY IT WORKS" data-notes="Zoomed into Brooklyn. [→] Today’s nearest step-free station on the G is 2.84 km away. [→] One elevator here also shortens the trip for its neighbours on the G. “That is why a station ranked 154th by ridership is our #3.”">
+    <svg class="map" id="mapCase" style="left:880px;top:150px;width:920px;height:860px"></svg>
+    <div class="col" style="left:120px;top:200px;width:700px;gap:26px">
+      <div class="eyebrow" data-fx="type" data-b="0">04 — WHY IT WORKS</div>
+      <h2 class="h-l" data-fx="headline" data-b="0" data-d="200"><span id="caseName"></span></h2>
+      <div data-fx="lines" data-b="0" data-d="800" style="display:flex;flex-direction:column">
+        <div class="kv"><span>Weekday entries</span><b id="caseW"></b></div>
+        <div class="kv"><span>Rank by ridership</span><b id="caseBR"></b></div>
+      </div>
+      <div data-fx="rise" data-b="1"><div class="label">Nearest step-free station on the same route</div>
+        <div class="mid cyan" style="margin-top:12px"><span data-fx="count" data-b="1" data-d="300" data-to="0" data-dec="2" id="caseGap">0</span><small class="steel" style="font-size:.4em;margin-left:8px">km</small></div></div>
+      <div data-fx="rise" data-b="2"><div class="label" style="color:var(--amber)">Rank by benefit</div><div class="mid amber" style="margin-top:12px">#<span id="caseRank"></span></div>
+        <div class="anno" style="margin-top:12px" id="caseHelped"></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== 06 METHOD -->
+  <section class="slide" id="method" data-section="05 · METHOD" data-notes="Two MTA tables, joined 424 of 424. [→] The Access Gap Index: entries on routes without step-free access times distance to the nearest same-route step-free station. [→] Choosing K stations to minimise it is a facility-location problem. Greedy has a 63% guarantee, and the exact integer program shows greedy is optimal at every budget we tested. [→] NOAA for robustness, 311 and NYPD as street context. Output: the planner.">
+    <div class="col" style="left:120px;top:180px;width:1680px;gap:22px">
+      <div class="eyebrow" data-fx="type" data-b="0">05 — METHOD</div>
+      <h2 class="h-m" data-fx="headline" data-b="0" data-d="200"><span>A facility-location model, checked against the exact optimum.</span></h2>
+    </div>
+    <svg id="flow" style="position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none" overflow="visible"></svg>
+    <div class="node frame" data-fx="rise" data-b="0" data-d="700" style="left:120px;top:480px;width:330px"><span class="t">MTA ridership</span><span class="s">25,820 complex-days<br>424 complexes × 61 days</span></div>
+    <div class="node frame" data-fx="rise" data-b="0" data-d="850" style="left:120px;top:700px;width:330px"><span class="t">MTA accessibility</span><span class="s">ADA status by platform<br>joined 424 / 424</span></div>
+    <div class="node frame key" data-fx="rise" data-b="1" data-d="350" style="left:560px;top:580px;width:360px"><span class="t">Access Gap Index</span><span class="s">entries on unmet routes ×<br>km to same-route step-free</span></div>
+    <div class="node frame key" data-fx="rise" data-b="2" data-d="350" style="left:1030px;top:580px;width:360px"><span class="t">Facility-location optimiser</span><span class="s">greedy · submodular<br>≥ 63% of optimum guaranteed</span></div>
+    <div class="node frame ok" data-fx="rise" data-b="2" data-d="900" style="left:1030px;top:360px;width:420px"><span class="t">Exact MILP (HiGHS)</span><span class="s"><b>optimal at K = 5, 10, 20, 30</b></span></div>
+    <div class="node frame" data-fx="rise" data-b="3" data-d="200" style="left:560px;top:850px;width:360px"><span class="t">NOAA · 311 · NYPD</span><span class="s">dry-day robustness<br>street-approach context</span></div>
+    <div class="node frame key" data-fx="rise" data-b="3" data-d="500" style="left:1500px;top:580px;width:300px"><span class="t">Planner</span><span class="s">live re-optimisation<br>in the browser</span></div>
+    <div class="anno" data-fx="type" data-b="1" data-d="900" data-speed="16" style="position:absolute;left:560px;top:478px;color:var(--white)">G(S) = Σ u(i) · min( d₀(i), min<sub>j∈S</sub> D(i, j) )</div>
+  </section>
+
+  <!-- ===================================================== 07 EVIDENCE -->
+  <section class="slide" id="evidence" data-section="06 · EVIDENCE" data-notes="One test per click. [→] Optimality: greedy equals the proven optimum at all four budgets. [→] Hold-out: planned on August only, scored on September: 33.3% versus 33.6% for a plan that saw September. [→] Bootstrap: 18 of our 20 picks appear in at least 90% of 200 resamples of days. [→] Sensitivity: stable to weather and distance caps. The route rule changes the list; that is a policy choice, so the app exposes it.">
+    <div class="col" style="left:120px;top:180px;width:1680px;gap:22px">
+      <div class="eyebrow" data-fx="type" data-b="0">06 — EVIDENCE</div>
+      <h2 class="h-m" data-fx="headline" data-b="0" data-d="200"><span>Four tests. The recommendation holds.</span></h2>
+    </div>
+    <div class="inst frame" data-fx="rise" data-b="1" style="left:120px"><div class="label">Optimality</div><div class="n cyan"><span data-fx="count" data-b="1" data-d="200" data-to="4">0</span><span class="steel" style="font-size:.5em"> / 4</span></div>
+      <div class="d">budgets where greedy equals the exact MILP optimum (K = 5, 10, 20, 30)</div></div>
+    <div class="inst frame" data-fx="rise" data-b="2" style="left:545px"><div class="label">Time hold-out</div>
+      <div class="vbars" id="oosBars"></div>
+      <div class="d">plan built on August weekdays, scored on September</div></div>
+    <div class="inst frame" data-fx="rise" data-b="3" style="left:970px"><div class="label">Bootstrap</div><div class="n cyan"><span data-fx="count" data-b="3" data-d="200" data-to="18">0</span><span class="steel" style="font-size:.5em"> / 20</span></div>
+      <div class="dots" id="bootDots"></div>
+      <div class="d">picks kept in ≥ 90% of 200 weekday resamples (dot opacity = frequency)</div></div>
+    <div class="inst frame" data-fx="rise" data-b="4" style="left:1395px"><div class="label">Sensitivity · top-20 overlap</div>
+      <div id="sens" style="display:flex;flex-direction:column"></div></div>
+  </section>
+
+  <!-- ===================================================== 08 EQUITY -->
+  <section class="slide" id="equity" data-section="07 · EQUITY" data-notes="Gap today versus after the plan, by borough. [→] The efficiency-optimal plan gives the Bronx zero upgrades: its gap is already lower and its ridership smaller. [→] Guaranteeing every borough at least one upgrade costs under half a point. Equity is almost free.">
+    <div class="col" style="left:120px;top:180px;width:1680px;gap:22px">
+      <div class="eyebrow" data-fx="type" data-b="0">07 — EQUITY</div>
+      <h2 class="h-l" data-fx="headline" data-b="0" data-d="200"><span>Pure efficiency gives the Bronx nothing.</span></h2>
+    </div>
+    <div class="hb" id="hb" data-fx="fade" data-b="0" data-d="700" style="position:absolute;left:120px;top:420px;width:1020px"></div>
+    <div class="anno" data-fx="fade" data-b="0" data-d="1200" style="position:absolute;left:310px;top:890px"><span style="color:var(--slate)">■</span> gap today &nbsp; <span class="cyan">■</span> after the 20-upgrade plan · ridership-weighted km</div>
+    <div class="col" style="left:1260px;top:430px;width:540px;gap:30px">
+      <div data-fx="rise" data-b="1"><div class="label" style="color:var(--amber)">Bronx upgrades in the top 20</div><div class="mid amber" style="margin-top:10px">0</div></div>
+      <div data-fx="rise" data-b="2"><div class="label">Cost of guaranteeing ≥ 1 per borough</div><div class="mid cyan" style="margin-top:10px">−<span data-fx="count" data-b="2" data-d="300" data-to="0.46" data-dec="2">0</span><small class="steel" style="font-size:.4em;margin-left:8px">pts</small></div>
+        <div class="body" style="margin-top:12px" id="eqText"></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== 09 PRODUCT -->
+  <section class="slide" id="product" data-section="08 · THE PLANNER" data-notes="Switch to the live app now (Command tab). Click path: KPI row → 03 Classon Av → Street approach → Gap now / Gap after plan layers → budget slider 5 → 40 → 20 → Exclude a site → Reset. About 90 seconds, then come back to this deck.">
+    <div class="col" style="left:120px;top:180px;width:600px;gap:22px">
+      <div class="eyebrow" data-fx="type" data-b="0">08 — THE PLANNER</div>
+      <h2 class="h-m" data-fx="headline" data-b="0" data-d="200"><span>The model, as a</span><span>decision tool.</span></h2>
+      <div class="list" data-fx="lines" data-b="0" data-d="900" style="margin-top:20px">
+        <div><span class="mk">01</span><span>Re-solves live as the budget and rules change</span></div>
+        <div><span class="mk">02</span><span>Explains every rank in plain language</span></div>
+        <div><span class="mk">03</span><span>Shows the gap before and after on the map</span></div>
+        <div><span class="mk">04</span><span>Equity floors and engineering exclusions</span></div>
+      </div>
+      <div class="anno" data-fx="type" data-b="0" data-d="1800" data-caret="keep" style="margin-top:20px;color:var(--white)">→ live demo</div>
+    </div>
+    <img class="shot" data-fx="rise" data-b="0" data-d="500" src="data:image/jpeg;base64,__SHOT_B64__" alt="StepFree NYC command center: scenario controls, KPI instruments, station map with recommended upgrades, and the dossier for Classon Av" style="left:790px;top:250px;width:1010px">
+  </section>
+
+  <!-- ===================================================== 10 IMPACT -->
+  <section class="slide" id="impact" data-section="09 · IMPACT & LIMITS" data-notes="If the MTA used this: a defensible, auditable sequence they can re-run each capital cycle in seconds. [→] Limits we are upfront about: entries are a proxy for need, straight-line distance, origin side only, no cost data (add it and the same code solves a budget knapsack), snapshot accessibility.">
+    <div class="col" style="left:120px;top:180px;width:1680px;gap:22px">
+      <div class="eyebrow" data-fx="type" data-b="0">09 — IMPACT &amp; LIMITS</div>
+      <h2 class="h-m" data-fx="headline" data-b="0" data-d="200"><span>What it changes, and what the data can’t tell us.</span></h2>
+    </div>
+    <div class="col" style="left:120px;top:420px;width:780px;gap:10px">
+      <div class="label" data-fx="fade" data-b="0" data-d="800" style="color:var(--cyan)">If the MTA used it</div>
+      <div class="list" data-fx="lines" data-b="0" data-d="1000">
+        <div><span class="mk">→</span><span>A <b>defensible, auditable</b> sequence, re-run each capital cycle in seconds</span></div>
+        <div><span class="mk">→</span><span>Every pick shows its gap, its benefit and <b>who it helps</b></span></div>
+        <div><span class="mk">→</span><span>Equity floors and engineering exclusions built in</span></div>
+        <div><span class="mk">→</span><span>Flags where an elevator needs a <b>DOT curb and sidewalk fix</b></span></div>
+      </div>
+    </div>
+    <div class="col" style="left:1020px;top:420px;width:780px;gap:10px">
+      <div class="label" data-fx="fade" data-b="1" style="color:var(--amber)">What the data can’t tell us</div>
+      <div class="list amber" data-fx="lines" data-b="1" data-d="150">
+        <div><span class="mk">!</span><span>Entries are a <b>proxy</b> for who needs step-free access</span></div>
+        <div><span class="mk">!</span><span>Straight-line distance; origin side of trips only</span></div>
+        <div><span class="mk">!</span><span>No cost data: add it and the same code solves a <b>budget knapsack</b></span></div>
+        <div><span class="mk">!</span><span>Accessibility is a recent snapshot; refresh before use</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== 11 CLOSE -->
+  <section class="slide" id="close" data-section="" data-notes="Let the first twenty illuminate. “Twenty elevators, placed where they close the most distance: 79% more access than the obvious rule, for the same budget. Thank you, happy to take questions.”">
+    <svg class="map" id="mapClose" style="left:980px;top:70px;width:860px;height:960px"></svg>
+    <div class="col" style="left:120px;top:300px;width:900px;gap:36px">
+      <h2 class="h-xl" data-fx="headline" data-b="0" data-d="900"><span>Same budget.</span><span class="cyan">Nearly twice</span><span>the access.</span></h2>
+      <p class="lead" data-fx="words" data-b="0" data-d="1800" style="width:800px">Twenty elevators, placed where they close the most distance: 33.8% of the gap, against 18.9% for the busiest-first rule.</p>
+      <div class="anno" data-fx="type" data-b="0" data-d="2700" data-speed="14">StepFree NYC · [GitHub repo URL] · [Team names]</div>
+    </div>
+  </section>
+</div>
+<div id="notes"></div>
+<div id="help">→ / space next · ← back · N notes · T timer · F fullscreen · R restart</div>
+
+<script type="application/json" id="deck-data">__DECK_JSON__</script>
+<script>
+(() => {
+"use strict";
+const D = JSON.parse(document.getElementById("deck-data").textContent);
+const NS = "http://www.w3.org/2000/svg";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const PRINT = /[?&]print\b/.test(location.search);
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const svg = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const short = (n) => n;
+const fmt = (n) => Math.round(n).toLocaleString("en-US");
+
+/* ------------------------------------------------------------------ stage scaling */
+const stage = $("#stage");
+function fit() { const s = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `translate(-50%,-50%) scale(${s})`; }
+if (!PRINT) { addEventListener("resize", fit); fit(); }
+
+/* ------------------------------------------------------------------ timers (cancellable per slide) */
+let timers = [];
+const later = (fn, ms) => { if (ms <= 0) { fn(); return; } timers.push(setTimeout(fn, ms)); };
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; rafs.forEach(cancelAnimationFrame); rafs = []; };
+let rafs = [];
+function tween(ms, step, ease = (t) => 1 - Math.pow(1 - t, 4)) {
+  const t0 = performance.now();
+  const f = (now) => { const p = Math.min(1, (now - t0) / ms); step(ease(p)); if (p < 1) rafs.push(requestAnimationFrame(f)); };
+  rafs.push(requestAnimationFrame(f));
+}
+
+/* ------------------------------------------------------------------ text FX
+   headline: line masks · words: word rise · type: characters + caret · lines: staggered rows
+   count: numeric counter · rise / fade / wipe: CSS transitions */
+function prepare(el) {
+  const fx = el.dataset.fx;
+  if (fx === "headline") {
+    [...el.children].forEach((c, k) => { const ln = document.createElement("span"); ln.className = "ln"; ln.style.setProperty("--k", k);
+      const inner = document.createElement("span"); inner.className = "ln-i"; while (c.firstChild) inner.appendChild(c.firstChild);
+      if (c.className) inner.classList.add(...c.className.split(" ")); if (c.id) inner.id = c.id; ln.appendChild(inner); el.replaceChild(ln, c); });
+  } else if (fx === "words") {
+    let k = 0;
+    const walk = (node) => { for (const n of [...node.childNodes]) {
+      if (n.nodeType === 3) { const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((part) => { if (!part) return; if (/^\s+$/.test(part)) frag.appendChild(document.createTextNode(part));
+          else { const w = document.createElement("span"); w.className = "w"; w.style.setProperty("--k", k++); w.textContent = part; frag.appendChild(w); } });
+        node.replaceChild(frag, n);
+      } else if (n.nodeType === 1 && !n.classList.contains("w")) { n.classList.add("w"); n.style.setProperty("--k", k++); } } };
+    walk(el);
+  } else if (fx === "type") {
+    el.dataset.html = el.innerHTML;
+  } else if (fx === "lines") {
+    [...el.children].forEach((c, k) => c.style.setProperty("--k", k));
+  }
+}
+
+function run(el, instant) {
+  const fx = el.dataset.fx;
+  if (instant) { finish(el); return; }
+  if (fx === "type") return typeOut(el);
+  if (fx === "count") return countUp(el);
+  el.classList.add("go");
+}
+
+function finish(el) {
+  const fx = el.dataset.fx;
+  if (fx === "type") el.innerHTML = el.dataset.html + (el.dataset.caret === "keep" && !PRINT ? '<span class="caret"></span>' : "");
+  if (fx === "count") el.textContent = fmtCount(el, +el.dataset.to);
+  el.classList.add("done");
+  el.querySelectorAll(".vbars, .hb").forEach((x) => x.classList.add("done"));
+}
+
+/* Typing: tokenises the element's HTML so inline markup (<b>, spans) survives; slight
+   per-character jitter and pauses on punctuation make it read as generated, not mechanical. */
+function typeOut(el) {
+  const html = el.dataset.html;
+  const tokens = html.match(/<[^>]+>|&[a-z#0-9]+;|[\s\S]/gi) || [];
+  const speed = +(el.dataset.speed || 26);
+  el.classList.add("go");
+  let i = 0, out = "";
+  const caret = '<span class="caret"></span>';
+  const step = () => {
+    let chunk = 0;
+    while (i < tokens.length && (tokens[i][0] === "<" || chunk < 1)) { if (tokens[i][0] !== "<") chunk++; out += tokens[i++]; }
+    el.innerHTML = out + caret;
+    if (i < tokens.length) {
+      const ch = tokens[i - 1];
+      const pause = /[.,·—→:]/.test(ch) ? speed * 4 : speed * (0.6 + Math.random() * 0.8);
+      later(step, pause);
+    } else {
+      later(() => { el.innerHTML = out + (el.dataset.caret === "keep" ? caret : ""); el.classList.add("done"); }, el.dataset.caret === "keep" ? 0 : 700);
+    }
+  };
+  step();
+}
+
+function fmtCount(el, v) {
+  const dec = +(el.dataset.dec || 0);
+  return dec ? v.toFixed(dec) : Math.round(v).toLocaleString("en-US");
+}
+function countUp(el) {
+  el.classList.add("go");
+  const to = +el.dataset.to;
+  tween(+(el.dataset.dur || 1300), (t) => { el.textContent = fmtCount(el, to * t); }, (t) => 1 - Math.pow(2, -10 * t));
+}
+
+/* ------------------------------------------------------------------ geography (provided data only) */
+const KX = Math.cos(40.73 * Math.PI / 180);
+const P = (lat, lon) => [(lon + 74.06) * KX * 1000, (40.92 - lat) * 1000];
+const WMAX = Math.max(...D.stations.map((s) => s.w));
+const XY = D.stations.map((s) => P(s.lat, s.lon));
+const CITY = (() => { const xs = XY.map((p) => p[0]), ys = XY.map((p) => p[1]); return [Math.min(...xs) - 6, Math.min(...ys) - 6, Math.max(...xs) - Math.min(...xs) + 12, Math.max(...ys) - Math.min(...ys) + 12]; })();
+
+function buildMap(el, { vb = CITY, rScale = 1, network = true, hiddenNet = false } = {}) {
+  el.setAttribute("viewBox", vb.join(" "));
+  el.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  const defs = svg("defs", {}, el);
+  const f = svg("filter", { id: "glow", x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs);
+  svg("feGaussianBlur", { stdDeviation: "2.2", result: "b" }, f);
+  const m = svg("feMerge", {}, f); svg("feMergeNode", { in: "b" }, m); svg("feMergeNode", { in: "SourceGraphic" }, m);
+  const pxPerUnit = Math.min(parseFloat(el.style.width) / vb[2], parseFloat(el.style.height) / vb[3]) || 1;
+  const u = 1 / pxPerUnit; // one screen pixel in map units
+  const gNet = svg("g", {}, el), gLinks = svg("g", {}, el), gSt = svg("g", {}, el), gRings = svg("g", {}, el), gLab = svg("g", {}, el);
+  let net = null;
+  if (network) {
+    const d = D.segments.map(([a, b, c, e]) => { const p1 = P(a, b), p2 = P(c, e); return `M${p1[0].toFixed(1)},${p1[1].toFixed(1)}L${p2[0].toFixed(1)},${p2[1].toFixed(1)}`; }).join("");
+    net = svg("path", { d, class: "net" }, gNet);
+    if (hiddenNet && !PRINT) { const len = net.getTotalLength(); net.style.strokeDasharray = len; net.style.strokeDashoffset = len; }
+  }
+  const cx = vb[0] + vb[2] / 2, cy = vb[1] + vb[3] / 2;
+  const R = D.stations.map((s) => (2.1 + 7.5 * Math.sqrt(s.w / WMAX)) * u * rScale);
+  const circles = D.stations.map((s, i) => {
+    const c = svg("circle", { cx: XY[i][0].toFixed(2), cy: XY[i][1].toFixed(2), r: R[i].toFixed(2), class: `st ${s.s}` }, gSt);
+    const dist = Math.hypot(XY[i][0] - cx, XY[i][1] - cy) / Math.hypot(vb[2], vb[3]);
+    c.style.setProperty("--dl", `${Math.round(dist * 1700)}ms`);
+    return c;
+  });
+  return {
+    el, u, R, circles, gLinks, gRings, gLab, net,
+    light(instant) { if (instant) circles.forEach((c) => c.style.setProperty("--dl", "0ms")); el.classList.add("lit"); },
+    drawNet(ms = 1800, instant) {
+      if (!net) return;
+      if (instant || PRINT) { net.style.strokeDashoffset = 0; return; }
+      net.getBoundingClientRect(); net.style.transition = `stroke-dashoffset ${ms}ms cubic-bezier(.65,0,.35,1)`; net.style.strokeDashoffset = 0;
+    },
+    ring(i, cls, delay = 0, instant, extra = 0) {
+      const r = svg("circle", { cx: XY[i][0], cy: XY[i][1], r: R[i] + (5 + extra) * u, class: `ring ${cls}` }, gRings);
+      if (instant) r.classList.add("on"); else later(() => r.classList.add("on"), delay);
+      return r;
+    },
+    link(i, j, cls, delay = 0, instant, ms = 900) {
+      const l = svg("line", { x1: XY[i][0], y1: XY[i][1], x2: XY[i][0], y2: XY[i][1], class: `link ${cls}` }, gLinks);
+      const go = () => tween(ms, (t) => { l.setAttribute("x2", XY[i][0] + (XY[j][0] - XY[i][0]) * t); l.setAttribute("y2", XY[i][1] + (XY[j][1] - XY[i][1]) * t); });
+      if (instant) { l.setAttribute("x2", XY[j][0]); l.setAttribute("y2", XY[j][1]); } else later(go, delay);
+      return l;
+    },
+    label(i, text, dx, dy, delay = 0, instant, cls = "") {
+      const t = svg("text", { x: XY[i][0] + dx * u, y: XY[i][1] + dy * u, class: `maplabel ${cls}`, "font-size": 19 * u, "stroke-width": 5 * u }, gLab);
+      t.textContent = text;
+      if (instant) t.classList.add("on"); else later(() => t.classList.add("on"), delay);
+      return t;
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ slide scripts: beat(n, instant) */
+const M = D.metrics;
+const SCRIPTS = {
+  open: {
+    init(sl) { this.map = buildMap($("#mapOpen", sl), { hiddenNet: true }); },
+    beat(n, instant) {
+      if (instant) { document.body.classList.add("lit"); this.map.light(true); this.map.drawNet(0, true); return; }
+      later(() => document.body.classList.add("lit"), 300);
+      later(() => { const sc = $("#scan"); sc.classList.remove("go"); void sc.offsetWidth; sc.classList.add("go"); }, 1700);
+      later(() => { this.map.drawNet(2000); this.map.light(); }, 2400);
+      later(() => document.body.classList.add("chrome-on"), 4400);
+      openDone = false; later(() => { openDone = true; }, 5200);
+    },
+  },
+  problem: {
+    init(sl) { this.map = buildMap($("#mapProblem", sl)); },
+    beat(n, instant) {
+      const m = this.map;
+      if (n === 0) { m.light(instant); }
+      if (n === 1) m.el.classList.add("focus-none");
+      if (n === 2) D.worst.forEach((w, k) => {
+        m.link(w.i, w.alt, "cyan", k * 110, instant, 800);
+        if (k < 3) m.label(w.i, `${w.name} · ${w.km.toFixed(2)} km`, 12, k === 1 ? 22 : -10, 900 + k * 220, instant);
+      });
+    },
+  },
+  rule: {
+    init(sl) {
+      this.map = buildMap($("#mapRule", sl));
+      $("#ruleEntries", sl).textContent = fmt(D.rule.busiest_entries);
+      $("#ruleBusyGap", sl).dataset.to = D.rule.busiest_gap;
+      $("#rulePlanGap", sl).dataset.to = D.rule.plan_gap;
+      $("#ruleOverlap", sl).textContent = D.rule.overlap;
+    },
+    beat(n, instant) {
+      const m = this.map;
+      if (n === 0) { m.light(instant); D.busiest.forEach((i, k) => m.ring(i, "ice", (instant ? 0 : 900) + k * 90, instant)); }
+      if (n === 1) { const top = new Set(D.top.map((t) => t.i)); D.busiest.forEach((i) => { if (!top.has(i)) m.circles[i].style.opacity = ".35"; }); }
+    },
+  },
+  discovery: {
+    init(sl) {
+      const c = $("#chart", sl), W = 1120, H = 600, L = 70, B = 50, T = 10, Rr = 20;
+      const K = D.curves.greedy.length - 1, yMax = 60;
+      const x = (k) => L + (k / K) * (W - L - Rr), y = (v) => H - B - (v / yMax) * (H - B - T);
+      const defs = svg("defs", {}, c); const f = svg("filter", { id: "glow", x: "-20%", y: "-20%", width: "140%", height: "140%" }, defs);
+      svg("feGaussianBlur", { stdDeviation: "3", result: "b" }, f); const mm = svg("feMerge", {}, f); svg("feMergeNode", { in: "b" }, mm); svg("feMergeNode", { in: "SourceGraphic" }, mm);
+      const axes = svg("g", { opacity: 0, style: "transition:opacity 700ms" }, c);
+      for (let v = 0; v <= yMax; v += 15) { svg("line", { x1: L, x2: W - Rr, y1: y(v), y2: y(v), class: "gl" }, axes); svg("text", { x: L - 14, y: y(v) + 6, "text-anchor": "end" }, axes).textContent = `${v}%`; }
+      for (let k = 0; k <= K; k += 10) svg("text", { x: x(k), y: H - B + 32, "text-anchor": "middle" }, axes).textContent = k;
+      svg("text", { x: (L + W) / 2, y: H + 22, "text-anchor": "middle" }, axes).textContent = "stations upgraded";
+      svg("line", { x1: L, x2: W - Rr, y1: y(0), y2: y(0), class: "ax" }, axes);
+      const band = svg("path", { class: "band", d: D.curves.random_p95.map((v, k) => `${k ? "L" : "M"}${x(k)},${y(v)}`).join("") + D.curves.random_p05.map((v, k) => `L${x(K - k)},${y(D.curves.random_p05[K - k])}`).join("") + "Z" }, c);
+      const line = (arr, cls) => svg("path", { class: cls, d: arr.map((v, k) => `${k ? "L" : "M"}${x(k).toFixed(1)},${y(v).toFixed(1)}`).join("") }, c);
+      const busy = line(D.curves.busiest_first, "s-busy"), opt = line(D.curves.greedy, "s-opt");
+      [busy, opt].forEach((p) => { const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len; p.dataset.len = len; });
+      // K = 20 marker + match annotation
+      const g20 = svg("g", { opacity: 0, style: "transition:opacity 600ms" }, c);
+      svg("line", { x1: x(20), x2: x(20), y1: T, y2: y(0), stroke: "rgba(238,245,248,.25)", "stroke-dasharray": "4 6" }, g20);
+      svg("text", { x: x(20) + 10, y: T + 20, fill: "#eef5f8" }, g20).textContent = "K = 20";
+      const v20 = D.curves.greedy[20], kMatch = D.metrics.baselines.K20.busiest_first_upgrades_to_match;
+      const gm = svg("g", { opacity: 0, style: "transition:opacity 500ms" }, c);
+      const mline = svg("line", { x1: x(20), x2: x(20), y1: y(v20), y2: y(v20), stroke: "#ffb547", "stroke-width": 2.5, "stroke-dasharray": "8 6" }, gm);
+      svg("circle", { cx: x(20), cy: y(v20), r: 7, fill: "#ffb547" }, gm);
+      const mdot = svg("circle", { cx: x(kMatch), cy: y(D.curves.busiest_first[kMatch]), r: 7, fill: "#ffb547", opacity: 0, style: "transition:opacity 400ms" }, gm);
+      const mtxt = svg("text", { x: x(kMatch) + 14, y: y(v20) - 14, fill: "#ffb547", opacity: 0, style: "transition:opacity 400ms" }, gm); mtxt.textContent = `K = ${kMatch}`;
+      Object.assign(this, { axes, band, busy, opt, g20, gm, mline, mdot, mtxt, x, kMatch });
+    },
+    beat(n, instant) {
+      const draw = (p, ms) => { if (instant) { p.style.strokeDashoffset = 0; return; } p.getBoundingClientRect(); p.style.transition = `stroke-dashoffset ${ms}ms cubic-bezier(.65,0,.35,1)`; p.style.strokeDashoffset = 0; };
+      if (n === 0) later(() => this.axes.setAttribute("opacity", 1), instant ? 0 : 500);
+      if (n === 1) { draw(this.busy, 1500); later(() => this.g20.setAttribute("opacity", 1), instant ? 0 : 1000); }
+      if (n === 2) { draw(this.opt, 1600); later(() => this.band.classList.add("on"), instant ? 0 : 900); }
+      if (n === 3) {
+        this.gm.setAttribute("opacity", 1);
+        const x0 = this.x(20), x1 = this.x(this.kMatch);
+        if (instant) { this.mline.setAttribute("x2", x1); this.mdot.setAttribute("opacity", 1); this.mtxt.setAttribute("opacity", 1); return; }
+        later(() => tween(1100, (t) => this.mline.setAttribute("x2", x0 + (x1 - x0) * t)), 200);
+        later(() => { this.mdot.setAttribute("opacity", 1); this.mtxt.setAttribute("opacity", 1); }, 1250);
+      }
+    },
+  },
+  case: {
+    init(sl) {
+      const c = D.case;
+      const pts = [c.i, c.alt, ...c.helped.map((h) => h.i)].map((i) => XY[i]);
+      const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+      const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) * 1.55 + 8;
+      this.map = buildMap($("#mapCase", sl), { vb: [cx - span / 2 * (920 / 860), cy - span / 2, span * (920 / 860), span], rScale: 1.8 });
+      $("#caseName", sl).innerHTML = `${c.name} <span class="steel" style="font-weight:500">(${c.routes})</span>`;
+      $("#caseW", sl).textContent = fmt(c.w);
+      $("#caseBR", sl).textContent = `#${c.busiest_rank}`;
+      $("#caseGap", sl).dataset.to = c.gap;
+      $("#caseRank", sl).textContent = c.rank;
+      $("#caseHelped", sl).innerHTML = `also shortens the trip for <b>${c.helped.length - 1}</b> neighbours:<br>` +
+        c.helped.filter((h) => h.i !== c.i).map((h) => `${h.name} <b>${h.before.toFixed(2)} → ${h.after.toFixed(2)} km</b>`).join("<br>");
+    },
+    beat(n, instant) {
+      const m = this.map, c = D.case;
+      if (n === 0) { m.light(instant); m.ring(c.i, "white", instant ? 0 : 900, instant, 3); m.label(c.i, c.name, 16, -14, instant ? 0 : 1100, instant); }
+      if (n === 1) { m.link(c.i, c.alt, "cyan", 0, instant, 1200); m.ring(c.alt, "ice", instant ? 0 : 1100, instant); m.label(c.alt, `${c.alt_name} · step-free`, 16, 28, instant ? 0 : 1300, instant, "dim"); }
+      if (n === 2) { m.ring(c.i, "amber", 0, instant, 9); c.helped.filter((h) => h.i !== c.i).forEach((h, k) => { m.link(c.i, h.i, "amber", k * 160, instant, 700); m.ring(h.i, "amber", 600 + k * 160, instant); }); }
+    },
+  },
+  method: {
+    init(sl) {
+      const f = $("#flow", sl);
+      const path = (d) => { const p = svg("path", { d, fill: "none", stroke: "rgba(79,209,255,.55)", "stroke-width": 2 }, f); const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len; return p; };
+      const head = (x, y) => svg("path", { d: `M${x - 10},${y - 6}L${x},${y}L${x - 10},${y + 6}`, fill: "none", stroke: "rgba(79,209,255,.8)", "stroke-width": 2, opacity: 0, style: "transition:opacity 300ms" }, f);
+      this.edges = [
+        [0, path("M450,550 C505,550 505,650 560,650"), head(560, 650)],
+        [0, path("M450,770 C505,770 505,670 560,670"), head(560, 670)],
+        [1, path("M920,660 L1030,660"), head(1030, 660)],
+        [2, path("M1210,580 L1210,488"), null],
+        [3, path("M740,850 L740,728"), null],
+        [3, path("M1390,660 L1500,660"), head(1500, 660)],
+      ];
+    },
+    beat(n, instant) {
+      this.edges.filter((e) => e[0] === (n === 0 ? 0 : n)).forEach(([b, p, h], k) => {
+        const go = () => { p.style.transition = "stroke-dashoffset 700ms cubic-bezier(.65,0,.35,1)"; p.style.strokeDashoffset = 0; if (h) later(() => h.setAttribute("opacity", 1), 600); };
+        if (instant) { p.style.strokeDashoffset = 0; if (h) h.setAttribute("opacity", 1); } else later(go, (n === 0 ? 1100 : 100) + k * 120);
+      });
+    },
+  },
+  evidence: {
+    init(sl) {
+      const o = M.out_of_sample;
+      const bars = [["Busiest-first (Aug)", o.reduction_busiest_first_aug, "#a9d6ea"], ["StepFree (Aug)", o.reduction_greedy_trained_on_aug, "#4fd1ff"], ["Oracle (Sep)", o.reduction_oracle_trained_on_sep, "#3c4b55"]];
+      $("#oosBars", sl).innerHTML = bars.map(([l, v, c], k) => `<div><span>${(100 * v).toFixed(1)}%</span><i style="height:${(100 * v / 36 * 100).toFixed(1)}%;max-height:100%;background:${c};transition-delay:${k * 150}ms"></i><em>${l}</em></div>`).join("");
+      $("#bootDots", sl).innerHTML = D.top.map((t) => `<i title="${t.name}" style="opacity:${(0.15 + 0.85 * t.boot).toFixed(2)}"></i>`).join("");
+      const s = M.sensitivity;
+      const rows = [["Dry weekdays (NOAA)", s.dry_weekday_weights.overlap_of_20], ["Cap 3 km / 8 km", `${s.cap_3km.overlap_of_20} · ${s.cap_8km.overlap_of_20}`],
+        ["Strict partial rule", s["strict_partial (one-direction ADA = not step-free)"].overlap_of_20], ["Weekend demand", s.weekend_weights.overlap_of_20], ["Any-route rule (policy)", s.any_route_alternative.overlap_of_20]];
+      $("#sens", sl).innerHTML = rows.map(([k, v]) => `<div class="kv" style="font-size:21px"><span>${k}</span><b>${v}${String(v).includes("·") ? "" : " / 20"}</b></div>`).join("");
+    },
+    beat(n, instant) { if (n === 2) { const b = $("#oosBars"); if (instant) b.classList.add("done"); else later(() => b.classList.add("go"), 250); } },
+  },
+  equity: {
+    init(sl) {
+      const eq = M.equity, max = 1.3;
+      $("#hb", sl).innerHTML = eq.map((e) => `<div class="nm">${e.borough}</div><div class="bars ${e.top20_upgrades === 0 ? "" : ""}">
+        <div class="bar"><i style="width:${(e.entry_weighted_gap_km / max * 100).toFixed(1)}%;background:#3c4b55"></i><span style="left:${(e.entry_weighted_gap_km / max * 100 + 1.2).toFixed(1)}%">${e.entry_weighted_gap_km.toFixed(2)} km</span></div>
+        <div class="bar"><i style="width:${(e.entry_weighted_gap_km_after_top20 / max * 100).toFixed(1)}%;background:#4fd1ff;transition-delay:250ms"></i><span style="left:${(e.entry_weighted_gap_km_after_top20 / max * 100 + 1.2).toFixed(1)}%;color:${e.top20_upgrades === 0 ? "#ffb547" : "#eef5f8"}">${e.entry_weighted_gap_km_after_top20.toFixed(2)} km · ${e.top20_upgrades} upgrades</span></div></div>`).join("");
+      const f1 = M.equity_floor.min_1_per_borough;
+      $("#eqText", sl).textContent = `${(100 * M.baselines.K20.greedy).toFixed(1)}% → ${(100 * f1.reduction).toFixed(1)}% of the gap closed, with the Bronx receiving ${f1.bronx_upgrades} upgrade.`;
+    },
+    beat(n, instant) {
+      const hb = $("#hb");
+      if (n === 0) { if (instant) hb.classList.add("done"); else later(() => hb.classList.add("go"), 900); }
+      if (n === 1) $$(".nm", hb)[0].style.color = "#ffb547";
+    },
+  },
+  close: {
+    init(sl) { this.map = buildMap($("#mapClose", sl)); },
+    beat(n, instant) {
+      const m = this.map;
+      m.light(instant);
+      if (!instant) m.el.classList.add("dim"); else m.el.classList.add("dim");
+      D.top.forEach((t, k) => { m.ring(t.i, "amber", (instant ? 0 : 400) + k * 120, instant); });
+    },
+  },
+};
+
+/* ------------------------------------------------------------------ deck engine */
+const slides = $$(".slide");
+const beatsOf = (sl) => Math.max(0, ...$$("[data-b]", sl).map((e) => +e.dataset.b));
+let cur = -1, beat = 0, openDone = true;
+const ticks = $("#ticks");
+ticks.innerHTML = slides.map(() => "<i><b></b></i>").join("");
+
+slides.forEach((sl) => {
+  $$("[data-fx]", sl).forEach(prepare);
+  SCRIPTS[sl.id]?.init?.(sl);
+});
+
+function runBeat(sl, n, instant) {
+  $$("[data-fx]", sl).filter((e) => +e.dataset.b === n).forEach((e) => {
+    const d = instant ? 0 : +(e.dataset.d || 0);
+    later(() => run(e, instant), d);
+  });
+  SCRIPTS[sl.id]?.beat?.(n, instant);
+}
+
+function chrome() {
+  const sl = slides[cur];
+  $("#cSection").textContent = sl.dataset.section || "";
+  $("#cIndex").textContent = `${String(cur + 1).padStart(2, "0")} / ${slides.length}`;
+  $$("#ticks b").forEach((b, k) => { const nb = beatsOf(slides[k]); b.style.transform = `scaleX(${k < cur ? 1 : k > cur ? 0 : nb ? (beat + 1) / (nb + 1) : 1})`; });
+  $("#notes").innerHTML = `<b>Slide ${cur + 1} · beat ${beat + 1} of ${beatsOf(sl) + 1}</b>${sl.dataset.notes || ""}`;
+}
+
+function reset(sl) {
+  $$("[data-fx]", sl).forEach((e) => { e.classList.remove("go", "done"); if (e.dataset.fx === "type") e.innerHTML = e.dataset.html; if (e.dataset.fx === "count") e.textContent = "0"; });
+  $$(".vbars, .hb", sl).forEach((x) => x.classList.remove("go", "done"));
+  // rebuild scripted visuals for a clean replay
+  $$("svg.map, svg.chart, #flow", sl).forEach((s) => { s.innerHTML = ""; s.classList.remove("lit", "focus-none", "dim"); });
+  SCRIPTS[sl.id]?.init?.(sl);
+}
+
+function go(i, { final = false } = {}) {
+  if (i < 0 || i >= slides.length) return;
+  clearTimers();
+  const dir = i > cur ? "out-l" : "out-r";
+  if (cur >= 0 && cur !== i) { const old = slides[cur]; old.classList.remove("on"); old.classList.add(dir); later(() => old.classList.remove(dir), 900); }
+  slides.forEach((x, k) => { if (k !== i && k !== cur) x.classList.remove("on"); });
+  cur = i; const sl = slides[i];
+  reset(sl);
+  sl.classList.remove("out-l", "out-r"); sl.classList.add("on");
+  if (i > 0) document.body.classList.add("lit", "chrome-on");
+  const nb = beatsOf(sl);
+  if (final || REDUCED) { for (let b = 0; b <= nb; b++) runBeat(sl, b, true); beat = nb; }
+  else { beat = 0; runBeat(sl, 0, false); }
+  history.replaceState(null, "", `#${i + 1}`);
+  chrome();
+}
+
+function next() {
+  const sl = slides[cur];
+  // first press during an in-flight beat completes it instantly; the next press advances
+  if (cur === 0 && !openDone) { clearTimers(); openDone = true; reset(sl); for (let b = 0; b <= beatsOf(sl); b++) runBeat(sl, b, true); document.body.classList.add("lit", "chrome-on"); beat = beatsOf(sl); chrome(); return; }
+  if (beat < beatsOf(sl)) { beat++; runBeat(sl, beat, false); chrome(); }
+  else go(cur + 1);
+}
+const prev = () => go(cur - 1, { final: true });
+
+/* ------------------------------------------------------------------ input */
+if (!PRINT) {
+  addEventListener("keydown", (e) => {
+    const k = e.key;
+    if (["ArrowRight", " ", "PageDown", "Enter"].includes(k)) { e.preventDefault(); next(); }
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(k)) { e.preventDefault(); prev(); }
+    else if (k === "Home") go(0);
+    else if (k === "End") go(slides.length - 1, { final: true });
+    else if (k === "n" || k === "N") document.body.classList.toggle("notes");
+    else if (k === "t" || k === "T") { document.body.classList.toggle("timer"); t0 = performance.now(); }
+    else if (k === "f" || k === "F") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.().catch(() => {}); }
+    else if (k === "r" || k === "R") { document.body.classList.remove("lit", "chrome-on"); slides.forEach((x) => x.classList.remove("on")); cur = -1; go(0); }
+    else if (/^[1-9]$/.test(k)) go(+k - 1, { final: true });
+  });
+  stage.addEventListener("click", (e) => { (e.clientX < innerWidth * 0.2 ? prev : next)(); });
+  let hideT = 0;
+  addEventListener("mousemove", () => { document.body.classList.add("cursor"); clearTimeout(hideT); hideT = setTimeout(() => document.body.classList.remove("cursor"), 1800); });
+  let t0 = performance.now();
+  setInterval(() => { const s = Math.floor((performance.now() - t0) / 1000); $("#timer").textContent = `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; }, 500);
+  const start = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+  go(start, { final: start > 0 });
+} else {
+  // PDF backup: every slide, final state, no motion
+  document.body.classList.add("print", "lit", "chrome-on");
+  slides.forEach((sl) => { cur = slides.indexOf(sl); for (let b = 0; b <= beatsOf(sl); b++) runBeat(sl, b, true); });
+  document.body.dataset.ready = "1";
+}
+})();
+</script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 # StepFree NYC: 5-minute presentation and live demo script
 
+> The keynote deck is `presentation/index.html`. Slide-by-slide timing and controls are in `docs/presenter_guide.md`. This file holds the full talk track and the live-demo click path.
+
 **Format:** about 5:00 talk and demo, then up to 2:00 of judges' questions.
 **Setup before you go up:**
 - open `app/index.html` (or the hosted link) full-screen. Let the ~2-second boot sequence play once on the first open (it skips on reloads in the same session). Stay on the **Command** tab with settings at default;

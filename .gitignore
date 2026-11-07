@@ -19,3 +19,5 @@ data/citibike_local/
 # Node (app build tooling)
 app/node_modules/
 *.map
+
+# keynote: rebuild with presentation/build.py
