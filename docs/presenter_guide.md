@@ -50,10 +50,8 @@ Most clickers send Page Down and Page Up, so they work out of the box. Pressing 
 
 If you are running long, skip slide 6 (press **7**) and say the method in one sentence on slide 5.
 
-## Placeholders to fill before 6:00 PM
-These appear in `presentation/src/deck.html`; rebuild after editing:
-- `[Team names]` on slides 1 and 11
-- `[GitHub repo URL]` on slide 11
+## Team and repository
+Slides 1 and 11 show **Pritish Sharma** and **github.com/pritish-sharma/stepfree-nyc**. To change them, edit `presentation/src/deck.html` and run `python3 presentation/build.py`.
 
 ## Accuracy notes for Q&A
 - "Nearly twice the access" on the closing slide means 33.8% vs 18.9% of the Access Gap Index closed (×1.79). The discovery slide states the exact figure: 79% more.

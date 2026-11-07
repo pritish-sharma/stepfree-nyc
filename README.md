@@ -1,5 +1,7 @@
 # StepFree NYC
 
+**Repository:** https://github.com/pritish-sharma/stepfree-nyc · **Author:** Pritish Sharma
+
 **A decision-support tool for sequencing NYC subway elevator (ADA) upgrades.**
 Rutgers Data Science Club · NYC in Motion Datathon · November 7, 2026 · Track: Accessibility & Equity
 
@@ -354,8 +356,7 @@ The run reports zero console errors.
 
 | Member | Contributions |
 |---|---|
-| Pritish Sharma | Problem framing, data pipeline, optimization model, evaluation, web app, documentation |
-| _add teammates_ | _add contributions_ |
+| Pritish Sharma | Problem framing, data pipeline, optimization model, evaluation, web app, documentation, presentation |
 
 ## 13. Attribution
 
