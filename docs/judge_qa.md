@@ -80,3 +80,9 @@ Its ridership-weighted gap (0.90 km) is already lower than Brooklyn's (1.19) or 
 
 **22. Why did Woodhaven Blvd come out #1?**
 14,186 weekday entries, no step-free platform in the snapshot, and the nearest step-free M/R station is 2.4 km away (Jackson Heights–Roosevelt Av). Upgrading it also shortens the detour at Grand Av–Newtown and 63 Dr–Rego Park. If it has been upgraded since the snapshot was taken, mark it step-free and re-run. The app's Exclude button does this live.
+
+**23. Is the interface just decoration? What's real?**
+Every number and mark comes from the model or the pipeline outputs. The map draws real station coordinates and the line network from MTA station order. The KPIs, sequence, dossier and two Validation charts re-solve the optimisation live in the browser. A parity test proves the browser model matches the Python model. Counters animate only when the scenario changes, and the header labels the data as historical.
+
+**24. Why build a custom map instead of using Google Maps or Mapbox?**
+The rules allow no external datasets, and paid tiles need API keys. A canvas renderer that draws only the provided data stays within the rules, works offline, and renders on demand so it uses no CPU when idle. The whole interface has no runtime libraries.

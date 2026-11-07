@@ -28,11 +28,17 @@ The intuitive rule is "upgrade the busiest inaccessible stations." It ignores tw
 ## 2. Solution
 
 1. **A reproducible Python pipeline.** It joins ridership and accessibility data, defines an *Access Gap Index*, and solves the upgrade-selection problem as a **facility-location optimization**. The answer is checked against an exact mixed-integer program.
-2. **An interactive web planner** (`app/index.html`). It runs the same model in the browser. Planners can change the budget, goal, equity floor, demand basis and route rule, exclude infeasible stations, and see the plan, the map, per-station detail and the evidence update immediately.
+2. **A command-center planning interface** (`app/index.html`). It runs the same model in the browser and has four sections, each tied to real functionality:
+   - **Command:** scenario controls, KPI instruments, a custom canvas map of all 424 complexes, the ranked upgrade sequence, and a station dossier that explains each rank in plain language.
+   - **Validation:** strategy and equity charts that recompute live for the current scenario, plus the pipeline's optimality, hold-out and robustness results.
+   - **Data explorer:** a searchable, sortable table of every complex and the data audit.
+   - **Method:** model definition, assumptions and limitations.
 
-| Planner + station detail | Evidence tab |
+| Station dossier | Gap after plan (map layer) |
 |---|---|
-| ![detail](docs/img/app_station_detail.png) | ![evidence](docs/img/app_evidence.png) |
+| ![detail](docs/img/app_station_detail.png) | ![gap after](docs/img/app_gap_after.png) |
+| **Validation** | **Data explorer** |
+| ![evidence](docs/img/app_evidence.png) | ![explorer](docs/img/app_explorer.png) |
 
 ## 3. Data
 
@@ -109,7 +115,7 @@ The task is to **allocate a budget**, not to predict an outcome. There is no lab
 | Is the top 20 an artifact of noisy days? | **Bootstrap:** 200 resamples of weekdays; selection frequency per station |
 | Does it depend on our assumptions? | Top-20 overlap under each alternative rule or weight |
 | Who benefits? | Ridership-weighted gap by borough; equity-floor cost |
-| Does the app compute what the pipeline computes? | `tests/test_parity.js` checks the browser model reproduces the Python plan and metrics |
+| Does the app compute what the pipeline computes? | `tests/test_parity.mjs` checks the browser model reproduces the Python plan and metrics |
 
 ## 5. Results
 
@@ -231,7 +237,16 @@ Station-level gaps differ by borough (Kruskal–Wallis H = 18.1, p = 0.0004). Tr
 
 ## 7. Run it
 
-**Web app (no install):** open `app/index.html` in any modern browser. All libraries are vendored in `app/vendor/`, so it works offline. To publish: enable GitHub Pages on the repo (branch `main`, folder `/`) and open `/app/`.
+**Web app (no install):** open `app/index.html` in any modern browser. The compiled bundle (`app/dist/`) is committed and has **no runtime dependencies**, so it works offline straight from disk. Only the web fonts need internet; without it, system fonts are used. To publish: enable GitHub Pages on the repo (branch `main`, folder `/`) and open `/app/`.
+
+**Rebuild the interface after editing `app/src/`** (Node ≥ 18):
+
+```bash
+cd app && npm install && npm run build      # esbuild → dist/app.js + dist/app.css (about 20 ms)
+npm run watch                               # rebuild on save while developing
+```
+
+Re-running the Python pipeline regenerates `app/data.js`, which the page loads separately, so the bundle does not need rebuilding when the data changes.
 
 **Rebuild all outputs from the raw CSVs** (Python ≥ 3.10):
 
@@ -246,7 +261,7 @@ pip install -r requirements.txt
 | 1 | `pipeline/01_build_station_table.py` | `outputs/stations.csv`, `outputs/data_profile.json` |
 | 2 | `pipeline/02_optimize_and_evaluate.py` | `outputs/metrics.json`, `plan_top50.csv`, `curves.csv`, `bootstrap_freq.csv`, `stations_scored.csv` |
 | 3 | `pipeline/03_figures_and_export.py` | `outputs/figures/*.png`, `app/data.js` |
-| test | `node tests/test_parity.js` | confirms browser model = Python model |
+| test | `node tests/test_parity.mjs` | confirms browser model = Python model (8 checks) |
 
 The whole pipeline runs in about 10 seconds on a laptop. Random seeds are fixed (`numpy` seed 42; the app's random baseline uses a seeded generator).
 
@@ -255,17 +270,64 @@ The whole pipeline runs in about 10 seconds on a laptop. Random seeds are fixed 
 ## 8. Repository layout
 
 ```
-├── app/                    web planner (index.html, model.js, data.js, vendor/)
+├── app/                    command-center interface
+│   ├── index.html          entry (loads data.js + dist/)
+│   ├── data.js             pipeline output for the UI (generated)
+│   ├── dist/               compiled bundle (committed, no runtime deps)
+│   └── src/
+│       ├── core/           model.js (pure maths) · scenario.js (engine) · store.js
+│       ├── ui/             motion · tooltip · controls · boot · map/ (canvas renderer) · charts/ (SVG) · panels/
+│       ├── views/          CommandView · ValidationView · ExplorerView · MethodView
+│       └── styles/         tokens.css (design + motion tokens) · base · components · views
 ├── data/public/            the five provided CSVs (unchanged copies)
 ├── docs/                   presentation outline, demo script, judge Q&A, screenshots
 ├── notebooks/              EDA + validation notebook
 ├── outputs/                metrics.json, plan, curves, figures
 ├── pipeline/               stepfree.py (model) + three numbered scripts
-├── tests/test_parity.js    JS ↔ Python parity test
+├── tests/test_parity.mjs   JS ↔ Python parity test
 ├── requirements.txt  run_all.sh  LICENSE
 ```
 
-## 9. Limitations
+## 9. Interface engineering
+
+The interface is built to the same standard as the analysis: every number on screen comes from the model or from `outputs/metrics.json`.
+
+**Architecture.** Modular ES-module source (`app/src/`) is bundled by esbuild into one classic script, so the page opens from disk with no server. Data flows one way:
+1. A control calls `store.set()`.
+2. The store batches changes to one update per animation frame.
+3. `engine.run(state)` re-solves the scenario.
+4. Only the visible view re-renders. Hidden views are marked dirty and refresh when shown.
+
+The model (`core/model.js`) is pure and is the same file the parity test imports.
+
+**Geospatial core.** A custom Canvas 2D renderer (`ui/map/MapView.js`) replaces Leaflet. It draws only provided data:
+- station positions, sized by weekday entries;
+- a lat/lon graticule;
+- a schematic line network: consecutive stops in MTA station order, with jumps over 2.6 km dropped;
+- for a selected station, its link to today's nearest step-free alternative and to every station its upgrade helps.
+
+There are four layers: **Status**, **Gap now**, **Gap after plan** and **Street (311)**. Colours cross-fade when you switch. The map supports pan, wheel and pinch zoom, double-click zoom, keyboard controls, hover tooltips and fly-to on selection. It renders only when something changes, so an idle map uses no CPU.
+
+**Motion system.** Durations, easing curves and stagger are tokens in `styles/tokens.css`, mirrored in `ui/motion.js` for JS-driven animation:
+- Boot sequence of about 2 s (grid, identity, scan line, log of real pipeline facts). It can be skipped, runs once per session, and is off under reduced motion.
+- Staggered panel entrances and sliding navigation and segment indicators.
+- Progressive line drawing, chart morphs between scenarios, and bars growing from the baseline.
+- KPI counters that animate **only when the scenario changes**, never on a timer, so historical data is never presented as live.
+
+`prefers-reduced-motion` collapses all of it to instant transitions.
+
+**Dependencies.** None at runtime. Plotly and Leaflet (about 4.5 MB) were replaced by about 76 KB of purpose-built code. esbuild is the only dev dependency.
+
+**Tested.** A headless-browser run covers:
+- KPI values against pipeline outputs (33.8% default, 33.3% with a borough floor, 13.1% at K = 5);
+- slider, objective, borough floor, reset, exclude and restore;
+- all four map layers, map pan and zoom, explorer search and row-to-map navigation;
+- keyboard tab navigation and reduced-motion behaviour;
+- no horizontal scroll at phone width.
+
+The run reports zero console errors.
+
+## 10. Limitations
 
 - **Entries are a proxy for need.** No dataset says how many riders need step-free access, so the index measures exposure, not the number of disabled riders.
 - **Straight-line distance.** It understates real travel, and street-network circuity varies. Network distance or travel time would be better.
@@ -277,7 +339,7 @@ The whole pipeline runs in about 10 seconds on a laptop. Random seeds are fixed 
 - **Staten Island Railway is excluded** because it has no ridership in the provided file.
 - **311 and crash counts are context, not evidence of hazard.** They reflect reporting behaviour and foot traffic, and none of our findings make causal claims.
 
-## 10. Future work
+## 11. Future work
 
 - Add project cost estimates by station structure and solve the budgeted (knapsack) version.
 - Use origin–destination ridership so both ends of a trip count.
@@ -285,13 +347,13 @@ The whole pipeline runs in about 10 seconds on a laptop. Random seeds are fixed 
 - Model elevator outage rates (redundancy: a second elevator at busy complexes).
 - Add the remaining 2025 months to capture seasonality.
 
-## 11. Team
+## 12. Team
 
 | Member | Contributions |
 |---|---|
 | Pritish Sharma | Problem framing, data pipeline, optimization model, evaluation, web app, documentation |
 | _add teammates_ | _add contributions_ |
 
-## 12. Attribution
+## 13. Attribution
 
-Data: Metropolitan Transportation Authority (data.ny.gov), NYC Open Data (311 Service Requests; NYPD Motor Vehicle Collisions), and NOAA National Centers for Environmental Information, distributed through the [Rutgers DSC NYC in Motion repository](https://github.com/rutgersdsc/nyc-in-motion). Libraries: pandas, NumPy, SciPy (HiGHS), scikit-learn, Matplotlib, Leaflet, Plotly.js. Code is MIT-licensed. Built with AI assistance (Claude); every number was produced by the code in this repository.
+Data: Metropolitan Transportation Authority (data.ny.gov), NYC Open Data (311 Service Requests; NYPD Motor Vehicle Collisions), and NOAA National Centers for Environmental Information, distributed through the [Rutgers DSC NYC in Motion repository](https://github.com/rutgersdsc/nyc-in-motion). Libraries: pandas, NumPy, SciPy (HiGHS), scikit-learn, Matplotlib; esbuild (build only). Fonts: Barlow, Barlow Semi Condensed, JetBrains Mono (Google Fonts, SIL OFL). Code is MIT-licensed. Built with AI assistance (Claude); every number was produced by the code in this repository.

@@ -15,3 +15,7 @@ data/citibike_local/
 # Secrets
 .env
 *.key
+
+# Node (app build tooling)
+app/node_modules/
+*.map

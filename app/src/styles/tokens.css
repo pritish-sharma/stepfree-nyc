@@ -1,0 +1,77 @@
+/* ==========================================================================
+   StepFree NYC — design tokens
+   Identity: an instrument, not a dashboard. Near-black graphite surfaces, hairline
+   cyan structure, one warm signal colour (amber) reserved for recommendations and alerts.
+   ========================================================================== */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces (cool graphite, darkest → lightest) */
+  --bg-0: #04070a;
+  --bg-1: #070c11;
+  --panel: #0a1117;
+  --panel-hi: #0f1a22;
+  --panel-sunk: #060b0f;
+
+  /* Structure */
+  --edge: rgba(130, 200, 230, 0.11);
+  --edge-mid: rgba(130, 205, 240, 0.2);
+  --edge-hi: rgba(120, 215, 255, 0.42);
+  --grid: rgba(110, 185, 225, 0.045);
+
+  /* Text */
+  --text-0: #e7f1f5;
+  --text-1: #a3b4bd;
+  --text-2: #6b7c86;
+  --text-3: #47565f;
+
+  /* Signal colours — each has one job */
+  --cyan: #4fd1ff;         /* step-free · primary data · focus */
+  --cyan-soft: rgba(79, 209, 255, 0.14);
+  --periwinkle: #8ea8ff;   /* partially step-free */
+  --slate: #4b5b66;        /* no step-free access */
+  --amber: #ffb547;        /* recommended upgrade · alert · the answer */
+  --amber-soft: rgba(255, 181, 71, 0.14);
+  --good: #5fe0b0;         /* improvement deltas */
+  --bad: #ff7468;          /* errors only */
+
+  /* Type */
+  --f-ui: "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-label: "Barlow Semi Condensed", "Barlow", "Arial Narrow", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --fs-micro: 10.5px;
+  --fs-label: 11.5px;
+  --fs-body: 13.5px;
+  --fs-lead: 15px;
+  --fs-h3: 18px;
+  --fs-h2: 24px;
+  --fs-readout: 30px;
+
+  /* Space */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 28px; --s-7: 40px;
+  --header-h: 52px;
+
+  /* Motion system */
+  --t-instant: 90ms;
+  --t-fast: 160ms;
+  --t-base: 280ms;
+  --t-slow: 520ms;
+  --t-xslow: 900ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);      /* entrances, settling */
+  --ease-std: cubic-bezier(0.4, 0, 0.2, 1);       /* state changes */
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);      /* exits */
+  --stagger: 45ms;
+
+  /* Layering */
+  --z-map: 0;
+  --z-map-ui: 5;
+  --z-panel: 10;
+  --z-header: 30;
+  --z-tooltip: 60;
+  --z-toast: 70;
+  --z-boot: 100;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 1ms; --t-base: 1ms; --t-slow: 1ms; --t-xslow: 1ms; --stagger: 0ms; }
+}

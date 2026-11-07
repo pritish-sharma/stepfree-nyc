@@ -1,0 +1,41 @@
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg-0);
+  color: var(--text-0);
+  font: 400 var(--fs-body)/1.45 var(--f-ui);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--cyan); }
+:focus-visible { outline: 1px solid var(--cyan); outline-offset: 2px; }
+::selection { background: rgba(79, 209, 255, 0.3); }
+.num, .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.label {
+  font: 600 var(--fs-label)/1.2 var(--f-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Ambient environment: a fixed technical grid with a soft illumination falloff.
+   Static by design; the only motion is a one-time drift during boot. */
+.environment {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1200px 700px at 58% 42%, rgba(40, 120, 170, 0.10), transparent 70%),
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 32px 32px,
+    var(--bg-0);
+}
+
+/* Scrollbars */
+* { scrollbar-width: thin; scrollbar-color: rgba(130, 200, 230, 0.2) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: rgba(130, 200, 230, 0.16); border-radius: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }

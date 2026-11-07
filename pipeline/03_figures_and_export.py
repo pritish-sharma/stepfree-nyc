@@ -112,8 +112,23 @@ for c in ["w_weekday", "w_weekday_aug", "w_weekday_sep", "w_weekday_dry", "w_wee
     s[c] = s[c].round(1)
 s["lat"] = s.lat.round(6); s["lon"] = s.lon.round(6)
 profile = json.loads((OUT / "data_profile.json").read_text())
+
+# Schematic line network for the map: consecutive stops in MTA station order within each `line`
+# field of the accessibility file. Wrap-around jumps between branches (> 2.6 km) are dropped.
+from stepfree import DATA
+acc = pd.read_csv(DATA / "mta_station_accessibility_current.csv")
+acc = acc[acc.borough != "SI"]
+segments = []
+for line, g in acc.groupby("line"):
+    g = g.sort_values("station_id")
+    for (_, a), (_, b) in zip(g.iterrows(), g.iloc[1:].iterrows()):
+        km = np.hypot((a.gtfs_latitude - b.gtfs_latitude) * 111.2, (a.gtfs_longitude - b.gtfs_longitude) * 84.3)
+        if km <= 2.6:
+            segments.append([round(a.gtfs_latitude, 5), round(a.gtfs_longitude, 5),
+                             round(b.gtfs_latitude, 5), round(b.gtfs_longitude, 5)])
 bundle = {"stations": s.to_dict(orient="records"), "metrics": M, "curves": curves.round(2).to_dict(orient="list"),
-          "profile": profile, "plan_reference": plan.head(20)[["rank", "complex_id"]].to_dict(orient="records")}
+          "profile": profile, "plan_reference": plan.head(20)[["rank", "complex_id"]].to_dict(orient="records"),
+          "segments": segments}
 (ROOT / "app").mkdir(exist_ok=True)
 (ROOT / "app" / "data.js").write_text("window.STEPFREE = " + json.dumps(bundle, separators=(",", ":")) + ";\n")
 print("wrote figures and app/data.js", (ROOT / "app" / "data.js").stat().st_size // 1024, "KB")

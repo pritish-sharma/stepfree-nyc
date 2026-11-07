@@ -2,7 +2,7 @@
 
 **Format:** about 5:00 talk and demo, then up to 2:00 of judges' questions.
 **Setup before you go up:**
-- open `app/index.html` (or the hosted link) full-screen on the **Planner** tab, settings at default;
+- open `app/index.html` (or the hosted link) full-screen. Let the ~2-second boot sequence play once on the first open (it skips on reloads in the same session). Stay on the **Command** tab with settings at default;
 - open the slide deck in a second window;
 - zoom the browser to 90% if the projector is low-resolution.
 
@@ -36,15 +36,16 @@
 
 | Step | Click | Say |
 |---|---|---|
-| 1 | Planner at default. Point at the KPI row | "20 upgrades: gap down 33.8%, 79% more than busiest-first, and average detour from 0.97 to 0.64 km." |
-| 2 | Click **#3 Classon Av** in the list | "Classon Av on the G ranks 154th by ridership but 3rd here: the nearest step-free G station is 2.8 km away. The orange lines show the neighbouring stations this one upgrade also helps." |
-| 3 | Scroll the detail panel to **Street approach** | "From DOT 311 we flag sidewalk, curb and ramp complaints near the station, so the MTA can pair the elevator with a DOT curb check. That's context, not part of the ranking." |
-| 4 | Click **Back**, then drag **Stations to upgrade** from 20 to 5, then to 40 | "Planners can see the sequence at any budget. The first five already close 13%." Return the slider to 20. |
+| 1 | Command at default. Point at the KPI instruments | "20 upgrades: gap closed 33.8%, 79% more than busiest-first, and average detour from 0.97 to 0.64 km. Every station on this map is a real MTA complex, sized by weekday riders." |
+| 2 | Click **03 Classon Av** in the sequence | The map flies to it. "Classon Av on the G ranks 154th by ridership but 3rd here. The dossier says why in plain language: the nearest step-free G station is 2.8 km away, and it also helps four neighbours. Those are the amber lines." |
+| 3 | Scroll the dossier to **Street approach** | "From DOT 311 we flag sidewalk, curb and ramp complaints near the station, so the MTA can pair the elevator with a DOT curb check. That's context, not part of the ranking." |
+| 3b | Click **← Sequence**, then the map layers **Gap now** → **Gap after plan** | "Bright means a long detour. Watch the bright spots fade when the plan is applied. This is the model's before and after." Switch back to **Status**. |
+| 4 | Drag **Upgrade budget** from 20 to 5, then to 40 | "Planners can see the sequence at any budget. The first five already close 13%." Return the slider to 20. |
 | 5 | Set **Borough guarantee: at least 1 per borough** | "The efficient plan gives the Bronx nothing. Guarantee one per borough and we lose under half a point. Equity is almost free." |
 | 6 | Click a top station's **Exclude from plan** (e.g. #1 Woodhaven Blvd), show the plan re-optimize, then **Reset to defaults** | "If engineers say a station is infeasible, exclude it and the plan re-optimizes instantly." |
 | 7 | Uncheck **Alternative must share a route**, then re-check it | "This is the key policy assumption. If any step-free station counts, the list changes, and we show it rather than hide it." |
 
-### 5. Evidence (3:45–4:30): Evidence tab
+### 5. Evidence (3:45–4:30): Validation tab
 > "Is it real? Three checks.
 > **Out of sample:** we planned on August only and scored on September. 33.3% versus 33.6% for a plan that saw September.
 > **Bootstrap:** resampling days 200 times, 18 of our 20 picks appear over 90% of the time.
@@ -59,3 +60,4 @@
 ## Backup if the demo fails
 - Static figures are in `outputs/figures/`, and README section 5 has every table.
 - `docs/img/` has screenshots of each app view.
+- If someone asks whether it is live data: no. The header says **Historical · Aug–Sep 2025**. Numbers animate only when you change the scenario.

@@ -1,0 +1,15 @@
+{
+  "name": "stepfree-nyc-app",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "StepFree NYC command-center UI. Source in src/, bundled to dist/ so index.html opens from disk.",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --format=iife --target=es2019 --minify --outfile=dist/app.js",
+    "watch": "esbuild src/main.js --bundle --format=iife --target=es2019 --sourcemap --outfile=dist/app.js --watch",
+    "serve": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.2"
+  }
+}
